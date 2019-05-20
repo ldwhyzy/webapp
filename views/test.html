@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<style type="text/css">
+            ul{list-style-type:none;padding-inline-start:0;margin-top:10px;}
+            ul li{margin-left:0;padding:0;text-align: left;}
+            li a{display:block;padding:5px;}
+            .info-li a{text-decoration: none;}
+            li a:link{background-color:#f8f8f8;color:#08c;}
+            /* li a:visited{background-color:#08c;color:#000;} */
+            li a:hover:not(:active){background-color:#e8e8e8;color:#000;}
+            li a:active{background:#80c;color:#f8f8f8;}
+            
+            
+</style>
+<script type="text/javascript">
+
+ 
+</script>
+{% endblock %}
+{% block contentleft %}
+<div class="main-panel">
+    <ul>
+      <li class="info-li"><a href="http://www.baidu.com" target="_blank">航意</a></li>
+      <li class="info-li"><a href="http://www.baidu.com" target="_blank">航意</a></li>
+      <li class="info-li"><a href="http://www.baidu.com" target="_blank">航意</a></li>
+      <li class="info-li"><a href="http://www.baidu.com" target="_blank">航意</a></li>
+    </ul>
+</div>
+{% endblock %}

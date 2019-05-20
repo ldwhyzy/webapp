@@ -1,0 +1,4 @@
+#ingnore
+node_modules
+static
+config.js

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<!--
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.0/dist/jquery.validate.min.js">
+<link rel="stylesheet" href="/static/js/jquery.validate.min.js">-->
+<style type="text/css">
+header{font-size:16px;}
+label{/*font-family:"Times New Roman", Times, serif;*/
+    font-weight:normal;
+}
+#help-block-email{font-size:10px;}
+.error-info{color:#ff0000;}
+</style>
+<script type="text/javascript">
+function registerValidate(){
+    if($(".error-info"))$(".error-info").remove();
+    
+    var registerBtn = document.getElementById("register-btn");
+    registerBtn.setAttribute("disabled", "disabled");
+    
+    var name = $("#username").val().trim();
+    
+    var passwd = $("#passwd").val().trim();
+    var repasswd = $("#repasswd").val().trim();    
+    //alert(name+" "+email + emailValidate(email));
+    
+    if(!name || name.length>50){
+        $("#username").parent().addClass("has-error");
+        $("#username").after(
+                '<span id="help-block-name" class="help-block error-info">用户名只能为1-50字符.</span>');
+        registerBtn.removeAttribute("disabled");
+        return ;
+    }
+    var email = $("#email").val().trim();
+    if(!email){
+        eamil = username+"@personalblog.com";
+    }else if(!emailValidate(email)){
+        $("#email").parent().addClass("has-error");
+        $("#help-block-email").after(
+                '<span id="help-block-email2" class="help-block error-info">邮箱无效.</span>');        
+        registerBtn.removeAttribute("disabled");
+        return ;
+    }
+    
+    var passwd = $("#passwd").val().trim();
+    var repasswd = $("#repasswd").val().trim(); 
+    if(!passwd || passwd !== repasswd){
+        $("#passwd").parent().addClass("has-error");
+        $("#repasswd").parent().addClass("has-error");
+        $("#repasswd").after(
+                '<span id="help-block-passwd" class="help-block error-info">两次输入密码不同.</span>');
+        registerBtn.removeAttribute("disabled");
+        return ;    
+    }
+    
+    var user = {};
+    
+    $.post("/api/authenticate/register", user, function(data){
+        //console.log("data");
+        if(data.info=="success"){
+            location.assign("/");
+        }
+        else if(data.info=="duplicate-name"){
+            if($(".error-info"))$(".error-info").remove();
+             $("#username").parent().addClass("has-error");
+            $("#username").after(
+                '<span id="name-error-info" class="help-block error-info">用户名已经被使用.</span>');
+              
+        }
+        else if(data.info=="duplicate-email"){
+            if($(".error-info"))$(".error-info").remove();
+             $("#email").parent().addClass("has-error");
+            $("#help-email-block").after(
+                '<span id="email-error-info" class="help-block error-info">邮箱已注册，请登录或找回密码.</span>');
+            
+        }
+        else if(data.info=="404 error"){
+            if($(".error-info"))$(".error-info").remove();
+            $("#register-btn").after(
+                '<span id="server-error-info" class="help-block error-info">服务器忙，请稍后重试.</span>');
+            
+        }
+        registerBtn.removeAttribute("disabled");        
+    });
+}
+
+$(function(){
+var formgroup = $(".form-group");
+
+
+//formgroup.addClass("has-error");
+});
+</script>
+{% endblock %} 
+	
+{% block contentleft %}
+    {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
+    {% endraw %}
+    <header>注册账号</header>
+    <div class="register-panel col-md-5 col-md-offset-3">
+        <form id="form-register" method="post" action="#">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" class="form-control" id="username" placeholder="用户名只能为字母和数字组合">
+            </div>
+            <div class="form-group">
+                <label>电子邮箱</label>
+                <input type="email" class="form-control" id="email" placeholder="电子邮箱">
+                <span id="help-block-email" class="help-block">可不填写电子邮箱，但忘记密码时无法找回.</span>
+            </div>
+            <div class="form-group">
+                <label>登录密码</label>
+                <input type="password" class="form-control" id="passwd" placeholder="密码">
+            </div>
+            <div class="form-group">
+                <label>重新输入密码</label>
+                <input type="password" class="form-control" id="repasswd" placeholder="重新输入密码">
+            </div>
+            <button type="button" onclick="registerValidate()" class="btn btn-primary btn-block register" id="register-btn">注册</button>
+        </form>
+    </div>
+{% endblock %}

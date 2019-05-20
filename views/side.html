@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width,initial-scale=1">
+		<meta name="description" content="blog programming interest">
+	    <title>{% block title %}<!--title-->{% endblock %}</title>
+        <!--
+	    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css"> 
+        <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon" />
+	    <link rel="stylesheet" href="/static/css/webapp.css">
+		<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://unpkg.com/vue/dist/vue.js"></script>
+	    <script src="https://cdn.bootcss.com/holder/2.9.6/holder.min.js"></script>
+	    -->
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css"> 
+        <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon" />
+	    <link rel="stylesheet" href="/static/css/webapp.css">
+		<script src="/static/js/jquery.min.js"></script>
+	    <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/vue.js"></script>
+	    <script src="/static/js/holder.min.js"></script>
+        <script src="/static/js/jq-paginator.js"></script>
+        <script type="text/javascript" src="/static/js/sha1.min.js"></script>
+        <style type="text/css">
+            body{background: #efefef /*url(/static/img/backgroud.gif)*/}
+            .my-navbar{background-color:#f8f8f8;min-height:35px;margin-bottom:15px;}
+            .navbar-brand{padding:0;height:100%}
+            .navbar-text{margin-bottom:0;margin-top:0;}
+            .navbar-right>li{margin-top:10%;}
+            .info-list a{text-decoration: none;}
+            .left-panel{background-color:#f8f8f8;}
+            .userinfo-panel{margin-bottom: 10px;padding-bottom: 10px;}
+            .userinfo-panel:after{content:" ";display:block;clear:both;height:100px;}
+            ul{list-style-type:none;padding-inline-start:0;margin-top:10px;}
+            ul li{margin-left:0;padding:0;text-align: left;}
+            li a{display:block;padding:5px;}
+            /* li>a:link,li>a:visited{background:#f8f8f8;} */
+            li a:hover{background-color:#e8e8e8;color:#000;}
+            li a:active{background:#08c;}
+            .link-clicked{background-color: "#08c"; color: "#f8f8f8";}
+        </style>
+        <script type="text/javascript">
+            if(!document.cookie){
+                location.assign("/");
+            }
+
+            $(function(){
+                var firstLink =  $(".info-list-item>a:first");
+                firstLink.css({backgroundColor: "#08c", color: "#f8f8f8"});
+                if(!firstLink.hasClass("my-clicked"))firstLink.addClass("my-clicked");
+                $(".info-list-item>a").click(function(){
+                    $(this).parent().siblings().children().css({backgroundColor: "#f8f8f8", color: "#08c"});
+                    $(this).parent().siblings().children().removeClass("my-clicked");
+                    $(this).css({backgroundColor: "#08c", color: "#f8f8f8"});
+                    $(this).addClass("my-clicked");
+                    return;
+                });
+
+                $(".info-list-item>a").hover(function(){
+                    if($(this).hasClass("my-clicked")){
+                        $(this).parent().siblings().children().css({backgroundColor: "#f8f8f8", color: "#08c"});
+                        return;
+                    }
+
+                    $(this).parent().siblings().children().each(
+                        function(){
+                            if($(this).hasClass("my-clicked"))return;
+                            $(this).css({backgroundColor: "#f8f8f8", color: "#08c"});
+                        }
+                    );
+                    $(this).css({backgroundColor: "#e8e8e8", color: "#000"}); 
+                });
+                
+                $(".info-list").mouseleave(function(){
+                        $(this).children().each(function(){
+                            var link = $(this).find("a");
+                            if(link.hasClass("my-clicked"))return;
+                            link.css({backgroundColor: "#f8f8f8", color: "#08c"});
+                            }
+                        );
+                });
+            });    
+        </script>
+        {% block beforehead %}<!-- before head  -->{% endblock %}
+	</head>
+	<body>
+		<div class="container-fluid">
+            <div class="row">
+	            <nav class="navbar navbar-default my-navbar">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#">
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/"><img id="brand-img" alt="Brand" src="/static/images/yuri_re_30.png"> </a>
+                    </div>
+                    <div  class="collapse navbar-collapse" id="#">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><p class="navbar-text">hi, 77777</p></li>
+                        </ul>
+                    </div>                    
+                </nav>    
+
+                <div class="userinfo-panel">
+                    <div class="col-md-2 col-md-offset-1 left-panel">
+                        <ul class="info-list">
+                            <li class="info-list-item"><a class="link-clicked" href="#">个人信息</a></li>
+                            <li class="info-list-item"><a href="#">个人足迹</a></li>
+                            <li class="info-list-item"><a href="#">个人评论</a></li>
+                        </ul>
+                    </div>
+                    {% block content %}<!--content-->{% endblock %}
+                </div>
+            </div>    
+		    <footer class="footer" data-spy="affix" data-offset-bottom="25">
+                <p> Copyright &copy; 2018. <span>Powered by node.js · ldstargazer@gmail.com</span></p>
+		    </footer>
+        </div>
+	</body>
+</html>
