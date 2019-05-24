@@ -10,6 +10,7 @@
 .comment-reply{margin-left:10px;font-size:10px;}
 .comment-reply>a{text-decoration:none;}
 .username-css{color:hotpink;}
+.replay-icon{color:lightseagreen;}
 
 #textArea_comment::-webkit-input-placeholder{
     text-align:center;
@@ -24,8 +25,13 @@
     text-align:center;
     line-height:100px;}           /* IE浏览器 */
     
-.comment-edit{margin-top:10px;}    
+.comment-edit{margin-top:5px;}    
 .bottom-ph{margin-bottom: 0px;}
+.commit-btn{margin-top:5px;}
+.bottom-commit{margin-bottom:0px;}
+.media-body-my{padding-bottom:0px;}
+.form-group{margin-bottom:0px;}
+.reply-edit-form{display: none;}
 </style>
 <script type="text/javascript">
 /*博客正文页面，显示博客内容和评论，评论编辑功能
@@ -48,6 +54,7 @@ $(function(){
                                 {comment_self:{id:4, created_at:20001, content: "评论4"}, 
                                 comment_children:null}
                             ];
+
 
 
     var comments_panel = new Vue({
@@ -115,8 +122,12 @@ $(function(){
                 //                                     不会赋值给studies
                 //     studies_panel.studies = data.studies;
                 // }); 
-                
-                
+            },
+            insertReply: function(evt){
+                //var p = $("this").parent().parent();
+                var rep = $(evt.target);
+
+                alert("this."+p);
             }
 
         }
@@ -144,22 +155,33 @@ $(function(){
                    <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
                    <p class="username-css">{{comment.comment_self.id}}</p>
                    <p>{{comment.comment_self.content}}</p>
-                   <p><span class="comment-time">{{comment.comment_self.created_at}}</span><span class="comment-reply"><a href="#">回复</a></span></p>
+                   <p><span class="comment-time">{{comment.comment_self.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                    <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
-                   
+
+                   <div class="media reply-edit-form">
+                        <div class="media-left">
+                            <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a>
+                        </div>
+                        <div class="media-body">
+                            <div class="form-group bottom-commit">
+                                <label for="#">编辑评论</label>
+                                <textarea class="form-control" id="textArea_comment1111" rows="5" placeholder="不吐不快"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit">提交</button>
+                        </div>
+                    </div>
+
                     <div v-if="comment.comment_children">
-                        <div v-for="replay in comment.comment_children" class="media">
+                        <div v-for="replay in comment.comment_children" class="media reply">
                                 <div class="media-left">
                                     <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a>
                                 </div>
                                 <div class="media-body">
                                     <p class="username-css">{{replay.id}}</p>
-                                    <p>{{replay.content}}</p>
+                                    <p><span v-if="replay.replay" class="replay-icon">@{{replay.replay}}: </span><span>{{replay.content}}</span></p>
                                     <p><span class="comment-time">{{replay.created_at}}</span><span class="comment-reply"><a href="#">回复</a></span></p>
-
                                 </div>
                         </div>
-                       
                     </div>    
                 </div>
             </div>
@@ -167,12 +189,12 @@ $(function(){
         
         <div class="comment-edit">
             <form action="/api/add_comment" method="post">
-                <div class="form-group">
+                <div class="form-group bottom-commit">
                     <label for="#comment_title">编辑评论</label>
-                    <input class="form-control" id="comment_title" placeholder="标题">
+                    <!-- <input class="form-control" id="comment_title" placeholder="标题"> -->
                     <textarea class="form-control" id="textArea_comment" rows="5" placeholder="不吐不快"></textarea>
                 </div>
-                <button type="button" class="btn btn-primary" v-on:click="commentEdit" id="mycomment">提交</button>
+                <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit">提交</button>
             </form>
         </div>
     </div>   
