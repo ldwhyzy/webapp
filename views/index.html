@@ -72,7 +72,7 @@ $(function(){
 {% endfor %}
 -->
     {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
-    <div id="studies_panel">
+    <div id="studies_panel" v-cloak>
         <article v-for="study in studies">
             <h3 class="page-header"><a v-bind:href="'/study/'+study.id">{{study.name}}</a></h3> 
             <p>发表于{{study.created_at}}</p>
@@ -82,7 +82,7 @@ $(function(){
         </article>
     </div>
     {% endraw %}
-    <div>
+    <!-- <div>
         <nav>
             <ul class="pagination">
                 <li><a href="#">首页</a></li>
@@ -99,7 +99,7 @@ $(function(){
                 <li><a href="#">尾页</a></li>
             </ul>
         </nav>
-    </div>
+    </div> -->
 
     <div class="pagination" id="jq-pagi">
    

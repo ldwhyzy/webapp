@@ -30,5 +30,10 @@ User.updateUser = function(user){
 };
 User.deleteUser = function(){};
 User.findUser = function(){};
+User.countUser = function(){
+    this.count({col:"id"}).then(num=>{
+        console.log("user count"+ num);
+    })
+};
 //*/
 module.exports = User;
