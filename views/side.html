@@ -23,8 +23,10 @@
 	    <script src="/static/js/holder.min.js"></script>
         <script src="/static/js/jq-paginator.js"></script>
         <script type="text/javascript" src="/static/js/sha1.min.js"></script>
+        <script type="text/javascript" src="/static/js/ldzy-util.js"></script>
         <style type="text/css">
             body{background: #efefef /*url(/static/img/backgroud.gif)*/}
+            [v-cloak]{display:none;}
             .my-navbar{background-color:#f8f8f8;min-height:35px;margin-bottom:15px;}
             .navbar-brand{padding:0;height:100%}
             .navbar-text{margin-bottom:0;margin-top:0;}
@@ -47,6 +49,10 @@
             }
 
             $(function(){
+                var sideusername = sessionStorage.getItem("username");
+                if(sideusername){
+                    $("#welcom-hi").text(decodeURIComponent(sideusername));
+                }
                 var firstLink =  $(".info-list-item>a:first");
                 firstLink.css({backgroundColor: "#08c", color: "#f8f8f8"});
                 if(!firstLink.hasClass("my-clicked"))firstLink.addClass("my-clicked");
@@ -99,7 +105,7 @@
                     </div>
                     <div  class="collapse navbar-collapse" id="#">
                         <ul class="nav navbar-nav navbar-right">
-                            <li><p class="navbar-text">hi, 77777</p></li>
+                            <li><p class="navbar-text">hi, <span id="welcom-hi">nanashi</span></p></li>
                         </ul>
                     </div>                    
                 </nav>    
@@ -110,6 +116,7 @@
                             <li class="info-list-item"><a class="link-clicked" href="#">个人信息</a></li>
                             <li class="info-list-item"><a href="#">个人足迹</a></li>
                             <li class="info-list-item"><a href="#">个人评论</a></li>
+                            {% block manage %}<!--manage-->{% endblock %}
                         </ul>
                     </div>
                     {% block content %}<!--content-->{% endblock %}

@@ -17,7 +17,8 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
         max: 5,
         min: 0,
         idle: 10000
-    }
+    },
+    operatorsAliases: false,
 });
 
 //const ID_TYPE = Sequelize.STRING(50);
@@ -102,7 +103,7 @@ function defineModel(name, attributes){
                     obj.updatedAt = now;
                     obj.version++;
                 }
-            }
+            },
         }
     });
 }

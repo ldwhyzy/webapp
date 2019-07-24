@@ -22,7 +22,9 @@
         <script src="/static/js/vue.js"></script>
 	    <script src="/static/js/holder.min.js"></script>
         <script src="/static/js/jq-paginator.js"></script>
-        <script type="text/javascript" src="/static/js/sha1.min.js"></script>
+        <!-- <script type="text/javascript" src="/static/js/sha1.min.js"></script> -->
+        <script type="text/javascript" src="/static/js/crypto-js.js"></script>
+        <script type="text/javascript" src="/static/js/ldzy-util.js"></script>
         <style type="text/css">
             body{background: #efefef /*url(/static/img/backgroud.gif)*/}
             [v-cloak]{display:none;}
@@ -59,50 +61,54 @@
             .footer{margin-top:50px;}
         </style>
         <script type="text/javascript">
-            function userCheck(){
-                var cookieObj = {};
-                if(document.cookie){
-                    var ca = document.cookie.split(";");
-                    for(var i=0; i<ca.length; i++) {
-                        var arr = ca[i].trim().split("=");
-                        cookieObj[arr[0]] = arr[1];
-                    }
-                }
-                return cookieObj;
-            }
+
             /*
             function Encrypt(word, key, iv){
                         srcs = CryptoJS.enc.Utf8.parse(word);
                         var encrypted = CryptoJS.AES.encrypt(srcs, key, { iv: iv,mode:CryptoJS.mode.CBC,padding: CryptoJS.pad.Pkcs7});
                         return encrypted.ciphertext.toString().toUpperCase();
             }*/
+
+            function pwHash(passwd){
+                return CryptoJS.SHA1(passwd).toString(CryptoJS.enc.Hex);
+                //return passwd;
+;            }
             
             function emailValidate(email){
-                var EmailPattern = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+                var EmailPattern = /^[a-zA-Z0-9\.\-\_]+\@[a-zA-Z0-9\-\_]+(\.[a-zA-Z0-9\-\_]+){1,4}$/;
                 //return EmailPattern.test(email.trim().toLowerCase());
                 return EmailPattern.test(email);
             }
 
             function loginHandler(){
-                var userName = $("#userName").val().trim().toLowerCase();//邮箱或字符串
-                var passWord = $("#passWord").val();//
+                var name = $("#userName").val().trim();//邮箱或字符串
+                var passwd = $("#passWord").val().trim();//
                 
                 if($("#test-li")){
                     $("#test-li").remove();
                 }
-                if(userName.length<=50){
-                    var user = {userName:null, email:null, passwd:null};
-                    if(emailValidate(userName)){
-                        user.email = userName; 
+                if(name.length<=50 && passwd.length<=50){
+                    var user = {name:null, email:null, passwd:null};
+                    if(emailValidate(name)){
+                        user.email = name.toLowerCase(); 
                     }
                     else{
-                        user.userName = userName;
+                        user.name = name;
                     }
-                    user.passwd = CryptoJS.SHA1(userName + ':' + this.passwd).toString();
+                    user.passwd = pwHash(passwd);
                     alert('userinfo: '+JSON.stringify(user));
-                    $.post('/api/authenticate', user, function(data){
-                        alert('显示成功数据: '+data.access);
-                        location.reload();
+                    $.post('/api/authenticate/login', user, function(data){
+                        alert('显示成功数据: '+JSON.stringify(data));
+                        if(data.result=='Success'){location.reload();}
+                        else if(data.result=='User Not Exist'){
+                            $("#login-line").append("<li id='test-li'>用户不存在，请注册</li>");
+                            $(".login-panel").dropdown("toggle"); 
+                        }
+                        else if(data.result=='Password Error'){
+                            $("#login-line").append("<li id='test-li'>密码错误</li>");
+                            $(".login-panel").dropdown("toggle"); 
+                        }
+                    
                     });     
                 }else{ //有误提示
                      
@@ -120,7 +126,7 @@
             }
            
            $(function(){
-            var user = userCheck();
+            var user = ldzyUtil.userCheck();
             var vm = new Vue({
                 el:"#userControl",
                 data:{
@@ -174,7 +180,7 @@
                             -->
                             
                             <template v-if="user">
-                                <li class="log-manage"><button class="auth-item" onclick="userManage()">{% raw %}{{ user.username }}{% endraw %}</button></li>
+                                <li class="log-manage"><button class="auth-item" onclick="userManage()">{% raw %}{{ decodeURIComponent(user.username) }}{% endraw %}</button></li>
                                 <li class="log-manage"><button class="auth-item" onclick="location='/authenticate/logout'">登出</button></li>
                             </template>
                             <template v-else>

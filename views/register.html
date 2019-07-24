@@ -17,14 +17,9 @@ function registerValidate(){
     if($(".error-info"))$(".error-info").remove();
     
     var registerBtn = document.getElementById("register-btn");
-    registerBtn.setAttribute("disabled", "disabled");
+    //registerBtn.setAttribute("disabled", "disabled");
     
-    var name = $("#username").val().trim();
-    
-    var passwd = $("#passwd").val().trim();
-    var repasswd = $("#repasswd").val().trim();    
-    alert(name+" "+email + emailValidate(email));
-    
+    var name = $("#username").val().trim();    
     if(!name || name.length>50){
         $("#username").parent().addClass("has-error");
         $("#username").after(
@@ -34,7 +29,7 @@ function registerValidate(){
     }
     var email = $("#email").val().trim();
     if(!email){
-        eamil = username+"@personalblog.com";
+        eamil = null;
     }else if(!emailValidate(email)){
         $("#email").parent().addClass("has-error");
         $("#help-block-email").after(
@@ -53,9 +48,8 @@ function registerValidate(){
         registerBtn.removeAttribute("disabled");
         return ;    
     }
-    
-    var user = {name: name, email: email, password: password};
-    
+    var user = {name: name, email: email, passwd: pwHash(passwd)};
+    //alert("user: "+ JSON.stringify(user));
     $.post("/api/authenticate/register", user, function(data){
         //console.log("data");
         if(data.info=="success"){

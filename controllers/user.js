@@ -1,3 +1,4 @@
+const User = require('../models/User');
 module.exports = {
     'GET /user/manage': async (ctx, next) => {
         var userid = ctx.state.userid;
@@ -23,15 +24,18 @@ module.exports = {
             });
         }*/
     },
-    "POST /user/manage/info": async (ctx, next)=>{
+    "POST /user/api/getUser": async (ctx, next)=>{
         var userid = ctx.state.userid;
-        var user = {
-            name: "user2",
-            email: "user2@example.com",
+        var user = await User.findUserById(userid);
+        var result = {
+            name: user.name,
+            email: user.email,
+            admin: user.admin,
             portrait: "/static/images/2.jpg",
             selfInfo: "这是个人简介，想做什么就去做吧。"
         }
-        ctx.rest(user);
+        console.log('/user/api/getuser: '+JSON.stringify(user.get({plain:true})));
+        ctx.rest(result);
     },
     "POST /user/manage/info_save": async (ctx, next)=>{
         name = ctx.request.body.name+"re";

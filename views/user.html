@@ -46,8 +46,8 @@ label{/*font-family:"Times New Roman", Times, serif;*/
         portrait:"",
         selfInfo: "无知亦无畏"
     };
-    var userinfoTemp = JSON.parse(JSON.stringify(user));
-    console.log(JSON.stringify(userinfoTemp));
+    //var userinfoTemp = JSON.parse(JSON.stringify(user));
+    //console.log(JSON.stringify(userinfoTemp));
 
     const vm = new Vue({
         el: "#user-info",
@@ -58,16 +58,17 @@ label{/*font-family:"Times New Roman", Times, serif;*/
             // selfInfo: userinfoTemp.selfInfo
             name: "user",
             email: "email",
+            admin:false,
             portrait: null,
             selfInfo: null
         },
         created: function(){
             //获取属性$.getJson();
-            userId = document.cookie;
-            console.log(userId);
-            $.post("/user/manage/info", userId, function(data, status){
+            userCookieInfo = ldzyUtil.userCheck();
+            $.post("/user/api/getUser", userCookieInfo.userid, function(data, status){
                 vm.name = data.name;
                 vm.email =  data.email;
+                vm.admin = data.admin;
                 vm.portrait = data.portrait;
                 vm.selfInfo = data.selfInfo;
                 //alert(JSON.stringify(data));
@@ -93,11 +94,17 @@ label{/*font-family:"Times New Roman", Times, serif;*/
  });
 </script>
 {% endblock %} 
-	
+
+{% block manage %}
+{% raw %}
+<li class="info-list-item"><a href="#">管理博客</a></li>
+{% endraw %}
+{% endblock %}
+
 {% block content %}
     {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
     <div class="col-md-7 right-panel">  
-        <div class="uerinfo-data-panel" id="user-info">
+        <div class="uerinfo-data-panel" id="user-info" v-cloak>
             <h3 class="page-header">个人信息</h3>
             <dl class="dl-horizontal">
                 <dt>用户名</dt>
@@ -122,25 +129,7 @@ label{/*font-family:"Times New Roman", Times, serif;*/
             <dl class="dl-horizontal">
                 <dt>简述</dt>
                 <dd><textarea id="selfInfo" maxlength="200" class="web-textarea" cols="50" rows="4">{{ selfInfo }}</textarea></dd>
-            </dl>       
-
-            <!-- <form action="" enctype="multipart/form-data">
-                <input id="file" class="filepath" onchange="changepic(this)" type="file"><br>
-                <img src="" id="show" width="150px">
-            </form>
-            <input id="file" class="filepath" onchange="changepic1(this)" type="file"><br>
-            <img src="" id="show" width="150px">
-            <script>
-                function changepic1() {
-                    var reads= new FileReader();
-                    f=document.getElementById('file').files[0];
-                    reads.readAsDataURL(f);
-                    reads.onload=function (e) {
-                        document.getElementById('show').src=this.result;
-                    };
-                }
-            </script> -->
-         
+            </dl>                
             <button class="btn btn-success" type="button" v-on:click="saveInfo">更新信息</button> 
         </div>     
     </div>
