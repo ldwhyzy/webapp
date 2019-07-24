@@ -4,4 +4,4 @@ static
 config.js
 *.zip
 debug
-.sql
+*.sql
