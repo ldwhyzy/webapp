@@ -5,3 +5,4 @@ config.js
 *.zip
 debug
 *.sql
+crypto.*

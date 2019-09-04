@@ -29,7 +29,7 @@ function registerValidate(){
     }
     var email = $("#email").val().trim();
     if(!email){
-        eamil = null;
+        email = null;
     }else if(!emailValidate(email)){
         $("#email").parent().addClass("has-error");
         $("#help-block-email").after(

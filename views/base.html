@@ -58,7 +58,7 @@
             .col-md-3{position:relative;height:500px;}
             .blog-theme-area{position:absolute;margin-top:50%;}
             .blog-theme button{margin:3px;}
-            .footer{margin-top:50px;}
+            /* .footer{margin-top:50px;} */
         </style>
         <script type="text/javascript">
 
@@ -96,9 +96,9 @@
                         user.name = name;
                     }
                     user.passwd = pwHash(passwd);
-                    alert('userinfo: '+JSON.stringify(user));
+                    //alert('userinfo: '+JSON.stringify(user));
                     $.post('/api/authenticate/login', user, function(data){
-                        alert('显示成功数据: '+JSON.stringify(data));
+                        //alert('显示成功数据: '+JSON.stringify(data));
                         if(data.result=='Success'){location.reload();}
                         else if(data.result=='User Not Exist'){
                             $("#login-line").append("<li id='test-li'>用户不存在，请注册</li>");
@@ -122,7 +122,7 @@
             }
 
             function userManage(){
-                location.assign("/user/manage");
+                location.assign("/user/profile");
             }
            
            $(function(){

@@ -1,0 +1,144 @@
+{% extends "side.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<style type="text/css">
+    label{/*font-family:"Times New Roman", Times, serif;*/
+        font-weight:normal;
+    }
+    
+    .right-panel{margin-left:10px;background:#f8f8f8;padding-bottom: 10px;}
+    .dl-horizontal dt{width:120px;}
+    #img-file{opacity: 0;}
+    .center-class{text-align:center;}
+</style>
+<script type="text/javascript">
+$(function(){
+    var blogsVM = new Vue({
+        el: "#blogs",
+        data: {
+            // test:[{id:1, title:'第一篇技术博客', created_at:200001,status:'发布'},
+            //          {id:3, title:'第二篇技术博客', created_at:200002,status:'草稿'},
+            //          {id:4, title:'二次元研究', created_at:200003,status:'隐藏'},
+            //          {id:5, title:'第四篇技术博客', created_at:200003,status:'发布'},],
+            blogs:null,//study篇从后台获取
+        },
+        created:function(){
+            let postData = {blogRow:10, currentPage:1};
+            $.post('/blog/api/blogs-page-get', postData, function(data, status){   
+                        if(data.blogs)blogsVM.blogs = data.blogs;
+                    }); 
+           //this.blogs = this.test;
+        }
+    });
+
+    $(".blog-edit").click(function(event){
+    var id = $(event.target).attr("data-id");
+    //editWindow = window.open(`/blog/blog_edit/${id}`);
+    // $.post('/blog/blog_edit', {id:id}, function(data, status){
+    //     var editWindow = window.open(`/blog/blog_edit/${id}`);
+    //     editWindow.document.write(data);
+    // });
+    $.post('/blog/api/blog_id_check', {id:id}, function(data, status){
+        var editWindow = window.open(`/blog/blog_edit/${data.id}`);
+        //editWindow.document.write(data);
+    });
+});
+
+$(".blog-delete").click(function(event){
+    var blogid = $(event.target).attr("data-id");
+    $.post('/blog/api/manage', {blogData:{blogid:blogid}, manage:"delete"}, function(data, status){
+        alert(data);
+        windown.location.reload();
+    });
+});
+
+$(".blog-hide").click(function(event){
+    var id = $(event.target).attr("data-id");
+    $.post('/blog/api/manage', {blogData:{blogid:blogid}, manage:"hide"}, function(data, status){
+        alert(data);
+        windown.location.reload();
+    });
+});
+
+    var totalPages = 0,
+        currentPageFlag = 1;
+        
+    $.getJSON("/blog/api/blogs", function(data, status){ //获取study类文章总数
+        var blogRow = 10;
+        totalPages = data.blogsCount/blogRow?data.blogsCount/blogRow:1;
+        $('#jq-pagi').jqPaginator({//分页设置
+            totalPages: totalPages,
+            visiblePages: 8,
+            currentPage: 1,
+            first: '<li class="first"><a href="javascript:void(0);">第一页</a></li>',
+            prev: '<li class="prev"><a href="javascript:void(0);">前一页</a></li>',
+            next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
+            last: '<li class="last"><a href="javascript:void(0);">末尾页</a></li>',
+            page: '<li class="page"><a href="javascript:void(0);">{% raw %}{{page}}{% endraw %}</a></li>',//防止后端jinja2解析导致填为空
+   
+            onPageChange: function (num, type) {
+               // $('.text-test').html('当前第' + num + '页');
+               var postData = {blogRow:blogRow, currentPage:num};
+               if(type=="change"){
+                    $.post('/blog/api/blogs-page-get', postData, function(data, status){   
+                        //this.currentPage = num;
+                        blogsVM.blogs = data.blogs;
+                        
+                    }); 
+               }
+            }  
+        }); 
+    }); 
+
+});
+</script>    
+{% endblock %}
+
+{% block content %}
+{% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
+    <div class="col-md-7 right-panel">  
+   <h4 class="page-header">发布文章</h4>
+   <button class="btn btn-default blog-edit" data-id=0>新建文章</button>
+   <h4 class="page-header">管理已发布文章</h4>
+   <table class="table" id="blogs" v-cloak>
+        <tr>
+            <th>#</th>
+            <th>id</th>
+            <th>标题</th>
+            <th>创建时间</th>
+            <th>文章状态</th>
+            <th>操作</th>
+        </tr>
+
+        <tr v-for="(blog,index) in blogs">
+            <td>
+                <span>{{index+1}}</span>
+            </td>
+            <td>
+                <span>{{blog.id}}</span>
+            </td>
+            <td>
+                <span>{{blog.title}}</span>
+            </td>
+            <td>
+                <span>{{blog.created_at}}</span>
+            </td>
+            <td>
+                <span>{{blog.status}}</span>
+            </td>
+            <td>
+                <button class="btn btn-default blog-edit" v-bind:data-id='blog.id'>修改</button>
+                <button class="btn btn-default blog-delete">删除</button>
+                <button class="btn btn-default blog-hide">隐藏</button>
+            </td>
+        </tr>
+    </table>
+    <div class="center-class">
+        <div class="pagination" id="jq-pagi"></div>
+    </div>
+    {% endraw %}
+{% endblock %}
+{% block bottomscripts %}
+<script type="text/javascript">
+</script>
+{% endblock %}

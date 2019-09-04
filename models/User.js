@@ -31,19 +31,12 @@ User.createUser = async function(user){
     return await this.create(user);//将findOrCreate功能拆开                                  
 };
 
+//userFind: Object {name:string, email:string}
 User.userExist = async function(userFind){
     let checkInfo = {nameE:false, emailE:false};
-    // User.findOne({where:{name:user.name}}).then(
-    //     (user)=>{
-    //         if(user)userInfo.nameE = true;
-    //         return User.findOne({where:{email:user.email}});
-    //     }).then(
-    //         (user)=>{
-    //             if(user)userInfo.emailE = true;
-    //             console.log("in then: "+ JSON.stringify(userInfo));    
-    //         });     
-    let result1 = await this.findOne({where:{name:userFind.name}});
-    let result2 = await this.findOne({where:{email:userFind.email}});
+    let result1=null, result2=null;     
+    if(userFind.name)result1 = await this.findOne({where:{name:userFind.name}});
+    if(userFind.email)result2 = await this.findOne({where:{email:userFind.email}});
     checkInfo = {nameE:checkInfo.nameE||!!result1, emailE:checkInfo.emailE||!!result2};
     let user = result1||result2;
     //return userInfo;
