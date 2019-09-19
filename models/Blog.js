@@ -27,7 +27,8 @@ Blog.createBlog = async function(blog){
 
 Blog.updateBlog = async function(id, values){
     let blog = await this.findByPk(id);
-    let result = await blog.update(values);
+    let result=null;
+    if(blog)result = await blog.update(values);
     return result;
 };
 
@@ -38,10 +39,11 @@ Blog.deleteBlog = async function(id){
 Blog.findBlogById = function(id){
     return this.findByPk(id);
 };
+
 Blog.countAllBlog = function(){
     return this.count({col:"id"});
 };
-Blog.offsetFindBlog = function(rowCount, currentPage){
-    return this.findAll({offset: rowCount*(currentPage-1), limit: rowCount});
+Blog.offsetFindBlog = function(rowCount, currentPage, options={}){
+    return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount});
 };
 module.exports = Blog;

@@ -47,8 +47,6 @@ app.use(async (ctx, next) => {  //404
 app.use(bodyParser());  //解析POST数据，可在ctx.request.body获取
 
 app.use(cookieSet.cookieCheck());  //检查是否有cookie
-//app.use(cookieSet.cookieSet(77777));  //设置cookie
-//app.use(cookieSet.cookieRemove(99007));  //删除cookie
 
 app.use(restPre.restify(app));
 

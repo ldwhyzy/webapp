@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 	    <meta name="viewport" content="width=device-width,initial-scale=1">
 		<meta name="description" content="blog programming interest">
-	    <title>{% block title %}<!--title-->{% endblock %}</title>
+	    <title>{% block title %}{{title}}{% endblock %}</title>
         <!--
 	    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css"> 
         <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon" />
@@ -56,7 +56,7 @@
             #login-button{margin-top:2px;width:100%;}
 
             .col-md-3{position:relative;height:500px;}
-            .blog-theme-area{position:absolute;margin-top:50%;margin-right:10px;}
+            .blog-theme-area{position:absolute;margin-top:50%;}
             .blog-theme button{margin:3px;}
             /* .footer{margin-top:50px;} */
         </style>
@@ -133,20 +133,6 @@
                     user: user.username?user:null,
                 }    
             });
-
-            $.getJSON('/api/blog/themes', function(data, status){
-                var buttonsHtml = ""; 
-                for(var i=0;i<data.themes.length;i++){
-                    buttonsHtml += "<button type=\"button\" class=\"btn btn-primary btn-blog-theme\" data-id=\""+data.themes[i].id+"\">"+data.themes[i].str+"</button>";
-                }
-                $(".blog-theme").html(buttonsHtml);
-                $(".btn-blog-theme").click(function(event){
-                    var themeid = $(event.target).attr("data-id");
-                    var themestr = $(event.target).html();
-                    //alert(themeid);
-                    var editWindow = window.open(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
-                });
-            });
            });
 
             </script>
@@ -221,9 +207,13 @@
                     <div class="blog-theme-area">
                         <h4>标签</h4>
                         <div class="blog-theme">
-                            <!-- {% for option in __secondClass__ %}
-                            <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{option.id}}">{{option.str}}</button>
-                            {% endfor  %} -->
+                            <button type="button" class="btn btn-primary">主题1</button>
+                            <button type="button" class="btn btn-primary">主题2</button>
+                            <button type="button" class="btn btn-primary">主题3</button>
+                            <button type="button" class="btn btn-primary">主题4</button>
+                            <button type="button" class="btn btn-primary">主题5</button>
+                            <button type="button" class="btn btn-primary">主题6</button>
+                            <button type="button" class="btn btn-primary">主题7</button>
                         </div>
                     </div>
                 </div>
