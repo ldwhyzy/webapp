@@ -5,7 +5,7 @@ const Blogtheme = require('../models/Blogtheme');
 //                      {id:3, title:'第二篇技术博客', created_at:200002,status:'草稿'},
 //                      {id:4, title:'二次元研究', created_at:200003,status:'隐藏'},
 //                      {id:5, title:'第四篇技术博客', created_at:200009,status:'发布'},];
-function sqlDataToblogData(sqlData){
+function sqlDataToblogData(sqlData, simple=true){
     var blogData = new Array();
     for(var i=0;i<sqlData.length;i++){
         blogData[i] = {
@@ -14,10 +14,14 @@ function sqlDataToblogData(sqlData){
             created_at: new Date(sqlData[i].updatedAt).toLocaleString('chinese',{hour12:false}),
             status: sqlData[i].publish,
         }
-        if(blogData[i].status==0)blogData[i].status = '发布';
-        else if(blogData[i].status==1)blogData[i].status = '隐藏';
-        else if(blogData[i].status==2)blogData[i].status = '草稿';
-        else if(blogData[i].status==3)blogData[i].status = '不存在';
+        if(simple){
+            if(blogData[i].status==0)blogData[i].status = '发布';
+            else if(blogData[i].status==1)blogData[i].status = '隐藏';
+            else if(blogData[i].status==2)blogData[i].status = '草稿';
+            else if(blogData[i].status==3)blogData[i].status = '不存在';
+        }else{
+            blogData[i].summary = sqlData[i].summary;
+        }
     }
     return blogData;
 }
@@ -73,6 +77,16 @@ module.exports = {
                 title: keywords.keyword+' | 个人博客',
             });
     },
+    'GET /blog/fun': async (ctx, next) => {
+            var userid = ctx.state.user&&ctx.state.user.id;
+            var themeid = parseInt(ctx.params.id);
+            console.log('[GET /blog/blogs/theme/:id] '+themeid);
+            var keywords = ctxurlparse(ctx.url);
+            console.log('[GET /blog/blogs/theme/:id] '+JSON.stringify(keywords));
+            ctx.render('blogs_theme.html', {
+                title: keywords.keyword+' | 个人博客',
+            });
+    },
     'GET /api/blog/themes': async (ctx, next) => {
         var secondClass = [{id:1, str:'Javascript'}, {id:2,str:'Python'}, {id:3, str:'Vue'}, {id:4, str:'人工智能'}, 
                 {id:5, str:'人生感悟'}, {id:6, str:'思辨'}, {id:7, str:'其他'}];
@@ -107,26 +121,39 @@ module.exports = {
             });
         }
     },
-    'GET /api/blogs': async (ctx, next) => {
-        if(ctx.state.user&&ctx.state.user.admin){
-            var blogData = {title:null, content:null, addClass:null,firstClass:null,secondClass:null,publish:null};
-            if(ctx.params.id>0)
-            blogData = {
-                title: "第一篇博客 我的奋斗",
-                content:"主人公はやや内気な普通の男子学生・浩太&lt;br&gt;\
-                ある夏休み、両親が旅行へ行ってしまい、生活力のない彼の身の回りの世話をするために、<br>\
-                遠縁の女性・結衣がやってくる。<br>\
-                彼女は幼い頃、夏休みを共に過ごしていた初恋の人だった。<br>\
-                数年前に結婚し、人妻になったためか、以前に増してやさしく甘い結衣に、<br>\
-                主人公は惹かれ、抑えきれない欲望をぶつけてしまう。<br>\
-                少年とお姉さんだったはずの2人の関係は徐々に深まっていく。<br>",
-                addClass:"杂论快点完成吧",
-                firstClass:0,
-                secondClass:2,
-                publish:0,
-            };
-            ctx.rest({blogs:null});
-        }
+    'GET /api/blog/blogs_count': async (ctx, next) => {
+        var blogsCount = await Blog.countAllBlog();
+        ctx.rest({blogsCount: blogsCount});
+    },
+    'POST /api/blog/blogs_count': async (ctx, next) => {
+        var first_class = parseInt(ctx.request.body.firstClass);
+        var blogsCount = await Blog.countAllBlog({first_class:first_class});
+        ctx.rest({blogsCount: blogsCount});
+    },
+    'POST /api/blog/page/:currentPage': async (ctx, next) => {
+            //var currentPage = parseInt(ctx.params.currentPage);
+            var offset = ctx.request.body.offsetData;
+            offset = {blogRow:parseInt(offset.blogRow), currentPage:parseInt(offset.currentPage)};
+            var firstClass = parseInt(ctx.request.body.firstClass);
+            var options = firstClass&&{first_class:firstClass}||null;
+            var blogs = null;
+            var sqlData = await Blog.offsetFindBlog(offset.blogRow, offset.currentPage, options);
+            if(sqlData)blogs = sqlDataToblogData(sqlData, false);
+            ctx.rest({blogs: blogs});
+    },
+    'POST /api/blog/blogs-page-get': async (ctx, next) => {
+        //if(ctx.state.user&&ctx.state.user.admin){
+            var options = ctx.request.body;
+            var blogs = null;
+            var sqlData = await Blog.offsetFindBlog(parseInt(options.blogRow), parseInt(options.currentPage));
+            if(sqlData)blogs = sqlDataToblogData(sqlData);
+            // blogs = [{id:1, title:'第一篇技术博客', created_at:200001,status:'发布'},
+            //          {id:3, title:'第二篇技术博客', created_at:200002,status:'草稿'},
+            //          {id:4, title:'二次元研究', created_at:200003,status:'隐藏'},
+            //          {id:5, title:'第四篇技术博客', created_at:200009,status:'发布'},];
+            
+            ctx.rest({blogs: blogs});
+        //}
     },
     // 'POST /blog/api/blog_id_check': async (ctx, next) => {
     //     if(ctx.state.user&&ctx.state.user.admin){
@@ -143,7 +170,7 @@ module.exports = {
     //         ctx.rest(blog);
     //     }
     // },
-    'POST /blog/api/manage': async (ctx, next) => {
+    'POST /api/blog/manage': async (ctx, next) => {
         var result = null;
         if(ctx.state.user&&ctx.state.user.admin){
             console.log('[POST /blog/api/manage/]: '+JSON.stringify(ctx.request.body));
@@ -188,10 +215,10 @@ module.exports = {
                     // }     
                 }
             }
-            // else if(blogData.blogid==0){
-            //     var blog = await Blog.createBlog(blogData);
-            //     if(blog&&blog.id)result='success';
-            // }
+            else if(blogData.blogid==0){
+                var blog = await Blog.createBlog(blogData);
+                if(blog&&blog.id)result='success';
+            }
         }
         ctx.rest({result:result});
     },

@@ -3,55 +3,53 @@
 {% block beforehead %}
 <script type="text/javascript">
 $(function(){
-    var article_length = $("article").length;
-    var currentPage_flag = 1;  
-    
-    var studies_panel = new Vue({
-        el: "#studies_panel",
+    var currentPage = 1;
+    var blogRow = 10;
+    var firstClass =2;  
+    var offsetData = {blogRow:blogRow, currentPage:currentPage};
+
+    var blogs_panel = new Vue({
+        el: "#blogs_panel",
         data: {
-            test: 'gogogoooooooooooo',
-            studies:[]//study篇从后台获取
-            //studies:[{name:'第一篇技术博客', id:1, created_at:200001,summary:'本篇博客简要'},
+            blogs:[]//blog篇从后台获取
+            //blogs:[{name:'第一篇技术博客', id:1, created_at:200001,summary:'本篇博客简要'},
             //          {name:'第一篇技术博客', id:2, created_at:200002,summary:'本篇博客简要'},
             //          {name:'第一篇技术博客', id:3, created_at:200003,summary:'本篇博客简要'},
             //          {name:'第一篇技术博客', id:3, created_at:200003,summary:'本篇博客简要'},]
         },
         created:function(){
-            $.getJSON(`/api/study/${currentPage_flag}`, function(data, status){ 
-                //var data_temp = JSON.stringify(data);
-                //var data_fin = JSON.parse(data_temp);
-                //console.log(data_fin.studies);
-                //this.studies = data_fin.studies;//此时的this为$.getJSON(),不是studies_panel对象
-                                                  //不会赋值给studies
-                studies_panel.studies = data.studies;
+            $.post(`/api/blog/page/${currentPage}`,{firstClass:firstClass, offsetData:offsetData}, function(data, status){ 
+                //this.blogs = data_fin.blogs;//此时的this为$.getJSON(),不是blogs_panel对象
+                                                  //不会赋值给blogs
+                blogs_panel.blogs = data.blogs;
             });    
         }
     });
-    
-    var studies_count = 0,
-        currentPage_flag = 1;
-        
-    $.getJSON("/api/studies", function(data, status){ //获取study类文章总数
-        studies_count = data["study_count"];
-        
+            
+    $.post("/api/blog/blogs_count", {firstClass:firstClass}, function(data, status){ //获取study类文章总6
+        if(typeof data.blogsCount !=='number')data.blogsCount = parseInt(data.blogsCount);
+        totalPages = Math.ceil(data.blogsCount/blogRow)||1;
         $('#jq-pagi').jqPaginator({//分页设置
-            totalPages: studies_count,
+            totalPages: totalPages,
             visiblePages: 8,
-            currentPage: 2,
+            currentPage: 1,
             first: '<li class="first"><a href="javascript:void(0);">第一页</a></li>',
             prev: '<li class="prev"><a href="javascript:void(0);">前一页</a></li>',
             next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
             last: '<li class="last"><a href="javascript:void(0);">末尾页</a></li>',
             page: '<li class="page"><a href="javascript:void(0);">{% raw %}{{page}}{% endraw %}</a></li>',//防止后端jinja2解析导致填为空
-   
+
             onPageChange: function (num, type) {
-               // $('.text-test').html('当前第' + num + '页');
-               if(type=="change"){
-                    $.get(`/api/study/${num}`, function(data, status){   
-                        //this.currentPage = num;
-                        studies_panel.studies = data.studies;
-                    }); 
-               }
+                // $('.text-test').html('当前第' + num + '页');
+                offsetData.currentPage = num;
+                currentPage = num;
+                if(type=="change"){
+                        $.post(`/api/blog/page/${currentPage}`, {firstClass:firstClass, offsetData:offsetData}, function(data, status){   
+                            //this.currentPage = num;
+                            blogs_panel.blogs = data.blogs;
+                            
+                        }); 
+                }
             }  
         }); 
     }); 
@@ -61,47 +59,26 @@ $(function(){
 	
 {% block contentleft %}
 <!--
-{% for study in studies %}
+{% for blog in blogs %}
 <article>
-<h3 class="page-header"><a href="/study/{{study.id}}">{{study.name}}</a></h3>
-<p>发表于{{study.created_at}}</p>
-<p>{{study.summary}}</p>
-<p><a href="/study/{{study.id}}">阅读全文</a></p>
+<h3 class="page-header"><a href="/blog/{{blog.id}}">{{blog.name}}</a></h3>
+<p>发表于{{blog.created_at}}</p>
+<p>{{blog.summary}}</p>
+<p><a href="/blog/{{blog.id}}">阅读全文</a></p>
 <hr>
 </article>
 {% endfor %}
 -->
     {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
-    <div id="studies_panel">
-        <article v-for="study in studies">
-            <h3 class="page-header"><a v-bind:href="'/study/'+study.id">{{study.name}}</a></h3> 
-            <p>发表于{{study.created_at}}</p>
-            <p>{{study.summary}}</p>
-            <p><a v-bind:href="'/study/'+study.id">阅读全文</a></p>
+    <div id="blogs_panel" v-cloak>
+        <article v-for="blog in blogs">
+            <h3 class="page-header"><a v-bind:href="'/blog/'+blog.id">{{blog.name}}</a></h3> 
+            <p>发表于{{blog.created_at}}</p>
+            <p>{{blog.summary}}</p>
+            <p><a v-bind:href="'/blog/'+blog.id">阅读全文</a></p>
             <hr>
         </article>
     </div>
     {% endraw %}
-    <div>
-        <nav >
-            <ul class="pagination">
-                <li><a href="#">首页</a></li>
-                <li><a href="#"><span >&laquo;</span></a></li>
-                <li>
-                    <a href="#">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#">4</a>
-                    <a href="#">5</a>
-                    <a href="#">6</a>
-                </li>
-                <li><a href="#"><span>&raquo;</span></a></li>
-                <li><a href="#">尾页</a></li>
-            </ul>
-        </nav>
-    </div>
-
-    <div class="pagination" id="jq-pagi">
-   
-    </div>
+    <div class="pagination" id="jq-pagi"></div>
 {% endblock %}

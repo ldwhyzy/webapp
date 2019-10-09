@@ -9,7 +9,7 @@ module.exports = {
             ctx.response.redirect('/');
         }
     },
-    "POST /user/api/getUser": async (ctx, next)=>{
+    "POST /api/user/getUser": async (ctx, next)=>{
         var userid = ctx.state.user&&ctx.state.user.id;
         if(userid){
             var user = ctx.state.user;
@@ -17,14 +17,14 @@ module.exports = {
                 name: user.name,
                 email: user.email,
                 admin: user.admin,
-                portrait: "/static/images/2.jpg",
+                portrait: "/static/images/user_portrait/2.jpg",
                 selfInfo: "这是个人简介，想做什么就去做吧。"
             }
             //console.log('/user/api/getuser: '+JSON.stringify(user));
             ctx.rest(result);
         }
     },
-    "POST /user/manage/info_save": async (ctx, next)=>{
+    "POST /api/user/info_save": async (ctx, next)=>{
         name = ctx.request.body.name+"re";
         email = ctx.request.body.email+"re";
         portrait = ctx.request.body.portrait;

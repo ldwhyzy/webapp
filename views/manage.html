@@ -22,7 +22,7 @@ function blogedit(event){
         if(manage==9){
             var editWindow = window.open(`/blog/blog_edit/${blogData.blogid}`);
         }else{
-            $.post('/blog/api/manage', {blogData:blogData, manage:manage}, function(data, status){
+            $.post('/api/blog/manage', {blogData:blogData, manage:manage}, function(data, status){
             alert(JSON.stringify(data));
             window.location.reload();
             });
@@ -40,8 +40,8 @@ $(function(){
             blogs:null,//study篇从后台获取
         },
         created:function(){
-            let postData = {blogRow:10, currentPage:1};
-            $.post('/blog/api/blogs-page-get', postData, function(data, status){   
+            let offsetData = {blogRow:10, currentPage:1};
+            $.post(`/api/blog/page/{postData.currentPage}`, {offsetData:offsetData, firstClass:0}, function(data, status){   
                         if(data.blogs)blogsVM.blogs = data.blogs;
                     }); 
            //this.blogs = this.test;
@@ -80,7 +80,7 @@ $(function(){
     var totalPages = 0,
         currentPageFlag = 1;
         
-    $.getJSON("/blog/api/blogs", function(data, status){ //获取study类文章总6
+    $.getJSON("/api/blog/blogs_count", function(data, status){ //获取study类文章总6
         var blogRow = 10;
         if(typeof data.blogsCount !=='number')data.blogsCount = parseInt(data.blogsCount);
         totalPages = Math.ceil(data.blogsCount/blogRow)||1;
@@ -98,7 +98,7 @@ $(function(){
                // $('.text-test').html('当前第' + num + '页');
                var postData = {blogRow:blogRow, currentPage:num};
                if(type=="change"){
-                    $.post('/blog/api/blogs-page-get', postData, function(data, status){   
+                    $.post('/api/blog/blogs-page-get', postData, function(data, status){   
                         //this.currentPage = num;
                         blogsVM.blogs = data.blogs;
                         

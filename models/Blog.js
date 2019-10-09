@@ -40,8 +40,8 @@ Blog.findBlogById = function(id){
     return this.findByPk(id);
 };
 
-Blog.countAllBlog = function(){
-    return this.count({col:"id"});
+Blog.countAllBlog = function(options={}){
+    return this.count({col:"id", where:options});
 };
 Blog.offsetFindBlog = function(rowCount, currentPage, options={}){
     return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount});
