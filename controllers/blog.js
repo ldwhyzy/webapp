@@ -26,6 +26,28 @@ function sqlDataToblogData(sqlData, simple=true){
     return blogData;
 }
 
+function onesqlDataToblogData(sqlData, simple=true){
+    var blogData = {};
+   
+    blogData = {
+        id: sqlData.id,
+        title: sqlData.title, 
+        content: sqlData.content, 
+        created_at: new Date(sqlData.updatedAt).toLocaleString('chinese',{hour12:false}),
+        // status: sqlData.publish,
+    }
+    // if(simple){
+    //     if(blogData.status==0)blogData.status = '发布';
+    //     else if(blogData.status==1)blogData.status = '隐藏';
+    //     else if(blogData.status==2)blogData.status = '草稿';
+    //     else if(blogData.status==3)blogData.status = '不存在';
+    // }else{
+    //     blogData.summary = sqlData.summary;
+    // }
+    
+    return blogData;
+}
+
 function ctxurlparse(urlstr){
     //sample /blog/blogs/theme/4?keyword=人工智能
     var keywordstr = urlstr.split('?')[1];
@@ -78,14 +100,23 @@ module.exports = {
             });
     },
     'GET /blog/fun': async (ctx, next) => {
-            var userid = ctx.state.user&&ctx.state.user.id;
-            var themeid = parseInt(ctx.params.id);
-            console.log('[GET /blog/blogs/theme/:id] '+themeid);
-            var keywords = ctxurlparse(ctx.url);
-            console.log('[GET /blog/blogs/theme/:id] '+JSON.stringify(keywords));
-            ctx.render('blogs_theme.html', {
-                title: keywords.keyword+' | 个人博客',
+            var title = '杂趣';    
+            ctx.render('footles.html', {
+                title: title+' | 个人博客',
             });
+    },
+    'GET /blog/:id': async (ctx, next) => {
+        var blogid = parseInt(ctx.params.id);
+        var blog = blogid && await Blog.findBlogById(blogid);
+        console.log('[GET /BLOG/:id]'+JSON.stringify(blog));
+        blog = blog && onesqlDataToblogData(blog);
+        console.log('[GET /BLOG/:id]'+JSON.stringify(blog));
+        var commits = [];           
+        ctx.render('blog.html', {
+            title: blog.title+' | 个人博客',
+            blog: blog,
+            commits: commits
+        });
     },
     'GET /api/blog/themes': async (ctx, next) => {
         var secondClass = [{id:1, str:'Javascript'}, {id:2,str:'Python'}, {id:3, str:'Vue'}, {id:4, str:'人工智能'}, 

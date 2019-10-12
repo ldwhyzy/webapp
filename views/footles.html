@@ -72,7 +72,7 @@ $(function(){
     {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
     <div id="blogs_panel" v-cloak>
         <article v-for="blog in blogs">
-            <h3 class="page-header"><a v-bind:href="'/blog/'+blog.id">{{blog.name}}</a></h3> 
+            <h4 class="page-header"><a v-bind:href="'/blog/'+blog.id">{{blog.title}}</a></h4> 
             <p>发表于{{blog.created_at}}</p>
             <p>{{blog.summary}}</p>
             <p><a v-bind:href="'/blog/'+blog.id">阅读全文</a></p>
