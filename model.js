@@ -15,6 +15,8 @@ for (let f of js_files) {
     module.exports[name] = require(__dirname + '/models/' + f);
 }
 
-module.exports.sync = () => {
+//module.exports.Comment.belongsTo(module.exports.User, {foreignKey:'user_id'});
+
+module.exports.sync = ()=>{
     db.sync();
 };

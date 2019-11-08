@@ -37,64 +37,41 @@
 评论编辑后，刷新全文，获取最新评论结构。以降低前端和后端的耦合程度。
 */
 $(function(){
-    // var comments_first = [ {title:'第一篇技术博客', id:1, created_at:200001,content:'本篇博客评论'},
-    //                         {title:'第一篇技术博客', id:2, created_at:200002,content:'本篇博客评论'},
-    //                         {title:'第一篇技术博客', id:3, created_at:200003,content:'本篇博客评论'},
-    //                         {title:'第一篇技术博客', id:3, created_at:200003,content:'本篇博客评论'}];
-    var comments_first = [ {comment_self:{id:1, stage:1, name:"从头观", created_at:20001, content: "作者说得好"},
-                                comment_children:[{id:11, name:"九天揽月", created_at:200006, reply:null, content:"你就是在瞎扯"},
-                                                   {id:12, name:"五洋捉鳖", created_at:200006, reply:"九天揽月", content:"你说得对"}
-                                                  ]           
-                                },
-                                {comment_self:{id:2, stage:2, name:"望其项背", created_at:20001, content: "评论2"}, 
-                                comment_children:null},
-                                {comment_self:{id:3, stage:3, name:"屈居人下", created_at:20001, content: "评论3"}, 
-                                comment_children:null},
-                                {comment_self:{id:4, stage:4, name:"阡陌交通", created_at:20001, content: "评论4"}, 
-                                comment_children:null}
-                            ];
-
+    var currentPage = 1;
+    var blogRow = 10;
+    var blogid = location.pathname.split('/').pop();
+    var offsetData = {blogRow:blogRow, currentPage:currentPage};
+    var comments_first = [{mainComment:{id:1, floor_no:1, name:"从头观", created_at:20001, content: "作者说得好"},
+                          subComment:[{id:11, name:"九天揽月", created_at:200006, reply:null, content:"你就是在瞎扯"},
+                                      {id:12, name:"五洋捉鳖", created_at:200006, reply:"九天揽月", content:"你说得对"}
+                                    ]},
+                         {mainComment:{id:2, floor_no:2, name:"望其项背", created_at:20001, content: "评论2"}, 
+                         subComment:null},
+                         {mainComment:{id:3, floor_no:3, name:"屈居人下", created_at:20001, content: "评论3"}, 
+                          subComment:null},
+                          {mainComment:{id:4, floor_no:4, name:"阡陌交通", created_at:20001, content: "评论4"}, 
+                          subComment:null}
+    ];
+    var comments_first1 = [
+        {"mainComment":{"id":2,"content":"我不但评论了，我还要给个差评！","self":{"id":1,"name":"admin"},"floor_no":1,"created_at":"2019-11-4 10:45:25"},"subComment":[]},
+        {"mainComment":{"id":3,"content":"我的再次评论，算了，就这样吧！","self":{"id":1,"name":"admin"},"floor_no":2,"created_at":"2019-11-4 11:40:44"},
+         "subComment":[{"id":6,"content":"我也来插一脚！","self":{"id":12,"name":"瑕疵之赤"},"reply":{"id":1,"name":"admin"},"created_at":"2019-11-4 13:58:00"},{"id":5,"content":"你太闲了！","self":{"id":1,"name":"admin"},"reply":{"id":1,"name":"admin"},"created_at":"2019-11-4 11:41:43"}]},
+        {"mainComment":{"id":4,"content":"连发三条评论，自己都感觉自己有点无聊了！","self":{"id":1,"name":"admin"},"floor_no":3,"created_at":"2019-11-4 11:40:58"},"subComment":[]}];
 
 
     var comments_panel = new Vue({
         el: "#comments_panel",
         data: {
-            test: 'gogogoooooooooooo',
             comments:null//blog篇从后台获取
-            // comments:[{title:'第er篇技术博客', id:1, created_at:200001,content:'本篇博客简要'},
-            //           {title:'第er篇技术博客', id:2, created_at:200002,content:'本篇博客简要'},
-            //           {title:'第er篇技术博客', id:3, created_at:200003,content:'本篇博客简要'},
-            //           {title:'第er篇技术博客', id:3, created_at:200003,content:'本篇博客简要'},]
         },
         created:function(){
-            //alert("created function.")
-        //    $.getJSON(`/api/comment/:${currentPage_flag}`, function(data, status){ 
-                //var data_temp = JSON.stringify(data);
-                //var data_fin = JSON.parse(data_temp);
-                //console.log(data_fin.studies);
-                //this.studies = data_fin.studies;//此时的this为$.getJSON(),不是studies_panel对象
-                                                  //不会赋值给studies
-          //      studies_panel.studies = data.studies;
-          //  });
-        //   comments_panel.comments = [ {title:'第一篇技术博客', id:1, created_at:200001,content:'本篇博客简要'},
-        //                     {title:'第一篇技术博客', id:2, created_at:200002,content:'本篇博客简要'},
-        //                     {title:'第一篇技术博客', id:3, created_at:200003,content:'本篇博客简要'},
-        //                     {title:'第一篇技术博客', id:3, created_at:200003,content:'本篇博客简要'}];
-
-        // var comment_simple = [ {comment_self:{id:1, stage:1, name:"从头观", created_at:20001, content: "作者说得好"},
-        //                         comment_children:[{id:11, name:"九天揽月", created_at:200006, reply:null, content:"你就是在瞎扯"},
-        //                                            {id:12, name:"五洋捉鳖", created_at:200006, reply:"九天揽月", content:"你说得对"}
-        //                                           ]           
-        //                         },
-        //                         {comment_self:{id:2, stage:2, name:"望其项背", created_at:20001, content: "评论2"}, 
-        //                         comment_children:null},
-        //                         {comment_self:{id:3, stage:3, name:"屈居人下", created_at:20001, content: "评论3"}, 
-        //                         comment_children:null},
-        //                         {comment_self:{id:4, stage:4, name:"阡陌交通", created_at:20001, content: "评论4"}, 
-        //                         comment_children:null}
-        //                     ];
-
-        this.comments = comments_first;
+            $.post(`/api/comment/page/${currentPage}`,{blogid:blogid, offsetData:offsetData}, function(data, status){ 
+                //this.blogs = data_fin.blogs;//此时的this为$.getJSON(),不是blogs_panel对象
+                                                  //不会赋值给blogs
+                //alert(JSON.stringify(data.comments));
+                comments_panel.comments = data.comments;
+            }); 
+        //this.comments = comments_first1;
             //alert(this.test);
         },
         methods:{
@@ -107,23 +84,22 @@ $(function(){
                 var comment = $(".comment-edit");
                 var replyTo = null;
                 var mainComment = true;
-                var stage = null;
+                var floor = null;
                 //var rep = $(evt.target);
                 if(!comment.hasClass("main-comment")){
                     replyTo = comment.parent().find(":first-child").attr("data-userid");
-                    stage = comment.parentsUntil("div.comments", "div.main-stage").attr("data-my-stage");
+                    floor = comment.parentsUntil("div.comments", "div.main-floor").attr("data-my-floor");
                     mainComment = false;
                 }
                 //var replyToName = replyTo.html();
                 userid = "888";
-                var commentstr = {stage: stage, userid: userid, content: comstr, blogId: blogId, replyTo:replyTo, mainComment:mainComment};
+                var commentstr = {floor: floor, userid: userid, content: comstr, blogId: blogId, replyTo:replyTo, mainComment:mainComment};
                 alert(JSON.stringify(commentstr));
                 //alert("blogid"+" "+blogId);
                 $.post("/comment/add", commentstr, function(data, status){
                     //comments_panel.comments = ;//直接修改comments即可，无需向后台申请，后台评论的结构需要修改
 
                 });
-
                 // $.getJSON(`/api/comment/:${currentPage_flag}`, function(data, status){ 
                 //     var data_temp = JSON.stringify(data);
                 //     var data_fin = JSON.parse(data_temp);
@@ -158,28 +134,46 @@ $(function(){
             <div v-for="comment in comments" class="media comments">
                 <div class="media-left">
                     <a href="#">
-                        <img class="media-object" data-src="holder.js/50x50" alt="用户头像"> 
+                        <!-- <img class="media-object" data-src="holder.js/50x50" alt="用户头像"> -->
+                        <img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})">
                     </a>
                 </div>
-                <div class="media-body main-stage" v-bind:data-my-stage="comment.comment_self.stage">
+                <div class="media-body main-floor" v-bind:data-my-floor="comment.mainComment.floor_no">
                    <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
-                   <p class="username-css" v-bind:data-userid="comment.comment_self.id">{{comment.comment_self.name}}</p>
-                   <p>{{comment.comment_self.content}}</p>
-                   <p><span class="comment-time">{{comment.comment_self.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                   <p class="username-css" v-bind:data-userid="comment.mainComment.id">{{comment.mainComment.self.name}}</p>
+                   <p>{{comment.mainComment.content}}</p>
+                   <p><span class="comment-time">{{comment.mainComment.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                    <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
                    
-                    <div v-if="comment.comment_children">
-                        <div v-for="reply in comment.comment_children" class="media reply">
+                    <!-- <div v-if="comment.subComment">
+                        <div v-for="reply in comment.subComment" class="media reply">
                                 <div class="media-left">
                                     <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a>
                                 </div>
                                 <div class="media-body sub-comment">
-                                    <p class="username-css" v-bind:data-userid="reply.id">{{reply.name}}</p>
-                                    <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply}}: </span><span>{{reply.content}}</span></p>
+                                    <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                    <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
                                     <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                                 </div>
                         </div>
-                    </div>    
+                    </div>   -->
+
+                    <template v-if="comment.subComment">
+                        <div v-for="reply in comment.subComment" class="media reply">
+                            <div class="media-left">
+                                <!-- <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a> -->
+                                <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                                
+                            </div>
+                            <div class="media-body sub-comment">
+                                <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
+                                <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                            </div>
+                        </div>
+                    </template>  
+
+
                 </div>
             </div>
         {% endraw %}

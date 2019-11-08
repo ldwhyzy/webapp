@@ -108,14 +108,10 @@ module.exports = {
     'GET /blog/:id': async (ctx, next) => {
         var blogid = parseInt(ctx.params.id);
         var blog = blogid && await Blog.findBlogById(blogid);
-        console.log('[GET /BLOG/:id]'+JSON.stringify(blog));
-        blog = blog && onesqlDataToblogData(blog);
-        console.log('[GET /BLOG/:id]'+JSON.stringify(blog));
-        var commits = [];           
+        blog = blog && onesqlDataToblogData(blog);        
         ctx.render('blog.html', {
             title: blog.title+' | 个人博客',
             blog: blog,
-            commits: commits
         });
     },
     'GET /api/blog/themes': async (ctx, next) => {

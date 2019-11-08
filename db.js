@@ -108,10 +108,17 @@ function defineModel(name, attributes){
     });
 }
 
+async function transaction(options={isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE}, autoCallback=null){
+    return sequelize.transaction(options, autoCallback);
+}
+
 const TYPES = ['STRING', 'INTEGER', 'BIGINT', 'TEXT', 'DOUBLE', 'DATEONLY', 'BOOLEAN'];
 
 var exp = {
+    fn: sequelize.fn,
+    col: sequelize.col,
     defineModel: defineModel,
+    transaction: transaction,
     Op: Op,
     sync: () => {
         // only allow create ddl in non-production environment:

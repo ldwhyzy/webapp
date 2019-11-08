@@ -6,3 +6,5 @@ config.js
 debug
 *.sql
 crypto.*
+*.icon
+*.txt
