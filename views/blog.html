@@ -25,62 +25,84 @@
     text-align:center;
     line-height:100px;}           /* IE浏览器 */
     
-.comment-edit{margin-top:5px;}    
+.comment-edit{margin-top:5px;position:relative;}    
 .bottom-ph{margin-bottom: 0px;}
 .commit-btn{margin-top:5px;}
 .bottom-commit{margin-bottom:0px;}
 .media-body-my{padding-bottom:0px;}
 .form-group{margin-bottom:0px;}
+.baffle-wrap{position:absolute;left:0;top:0;width:100%;height:100%;z-index:12;
+             text-align: center;padding:60px;background: #d9d9d9;opacity:0.9;filter:alpha(opacity=90);}
+#myModal{width:100%;}
 </style>
 <script type="text/javascript">
 /*博客正文页面，显示博客内容和评论，评论编辑功能
 评论编辑后，刷新全文，获取最新评论结构。以降低前端和后端的耦合程度。
 */
+function miniloginHandler(){
+    //alert(document.activeElement.id);
+    var name = $("#username").val().trim();//邮箱或字符串
+    var passwd = $("#passwd").val().trim();//
+
+    if($("#test-li")){
+        $("#test-li").remove();
+    }
+    if(name.length<=50 && passwd.length<=50){
+        var user = {name:null, email:null, passwd:null};
+        if(emailValidate(name)){
+            user.email = name.toLowerCase(); 
+        }
+        else{
+            user.name = name;
+        }
+        user.passwd = pwHash(passwd);
+        //alert('userinfo: '+JSON.stringify(user));
+        $.post('/api/authenticate/login', user, function(data){
+            //alert('显示成功数据: '+JSON.stringify(data));
+            if(data.result=='Success'){location.reload();}
+            else if(data.result=='User Not Exist'){
+                $("#login-block").append("<li class='text-danger' id='test-li'>用户不存在，请注册</li>");
+                // $(".login-panel").dropdown("toggle"); 
+            }
+            else if(data.result=='Password Error'){
+                $("#login-block").append("<li class='text-danger' id='test-li'>密码错误</li>");
+                //$(".login-panel").dropdown("toggle"); 
+            }
+        
+        });     
+    }else{ //有误提示
+        $("#login-block").append("<li class='text-danger' id='test-li'>输入用户名或密码有误</li>");
+        //$(".login-panel").dropdown("toggle"); 
+    }       
+}
 $(function(){
     var currentPage = 1;
     var blogRow = 10;
     var blogid = location.pathname.split('/').pop();
     var offsetData = {blogRow:blogRow, currentPage:currentPage};
-    var comments_first = [{mainComment:{id:1, floor_no:1, name:"从头观", created_at:20001, content: "作者说得好"},
-                          subComment:[{id:11, name:"九天揽月", created_at:200006, reply:null, content:"你就是在瞎扯"},
-                                      {id:12, name:"五洋捉鳖", created_at:200006, reply:"九天揽月", content:"你说得对"}
-                                    ]},
-                         {mainComment:{id:2, floor_no:2, name:"望其项背", created_at:20001, content: "评论2"}, 
-                         subComment:null},
-                         {mainComment:{id:3, floor_no:3, name:"屈居人下", created_at:20001, content: "评论3"}, 
-                          subComment:null},
-                          {mainComment:{id:4, floor_no:4, name:"阡陌交通", created_at:20001, content: "评论4"}, 
-                          subComment:null}
-    ];
-    var comments_first1 = [
-        {"mainComment":{"id":2,"content":"我不但评论了，我还要给个差评！","self":{"id":1,"name":"admin"},"floor_no":1,"created_at":"2019-11-4 10:45:25"},"subComment":[]},
-        {"mainComment":{"id":3,"content":"我的再次评论，算了，就这样吧！","self":{"id":1,"name":"admin"},"floor_no":2,"created_at":"2019-11-4 11:40:44"},
-         "subComment":[{"id":6,"content":"我也来插一脚！","self":{"id":12,"name":"瑕疵之赤"},"reply":{"id":1,"name":"admin"},"created_at":"2019-11-4 13:58:00"},{"id":5,"content":"你太闲了！","self":{"id":1,"name":"admin"},"reply":{"id":1,"name":"admin"},"created_at":"2019-11-4 11:41:43"}]},
-        {"mainComment":{"id":4,"content":"连发三条评论，自己都感觉自己有点无聊了！","self":{"id":1,"name":"admin"},"floor_no":3,"created_at":"2019-11-4 11:40:58"},"subComment":[]}];
-
-
     var comments_panel = new Vue({
         el: "#comments_panel",
         data: {
+            user:null,
             comments:null//blog篇从后台获取
         },
         created:function(){
+            this.user= user;
             $.post(`/api/comment/page/${currentPage}`,{blogid:blogid, offsetData:offsetData}, function(data, status){ 
                 //this.blogs = data_fin.blogs;//此时的this为$.getJSON(),不是blogs_panel对象
                                                   //不会赋值给blogs
                 //alert(JSON.stringify(data.comments));
                 comments_panel.comments = data.comments;
             }); 
-        //this.comments = comments_first1;
-            //alert(this.test);
         },
         methods:{
             commentEdit: function(evt){
+                const commitBtn = $(evt.target);
+                commitBtn.addClass('disabled');
                 const content = $("#textArea_comment");
                 //const title = $("#comment_title");
                 //var titlestr = title.val().trim();
                 var comstr = content.val().trim();
-                var blogId = location.pathname.split("/")[2];
                 var comment = $(".comment-edit");
                 var replyTo = null;
                 var mainComment = true;
@@ -91,23 +113,14 @@ $(function(){
                     floor = comment.parentsUntil("div.comments", "div.main-floor").attr("data-my-floor");
                     mainComment = false;
                 }
-                //var replyToName = replyTo.html();
-                userid = "888";
-                var commentstr = {floor: floor, userid: userid, content: comstr, blogId: blogId, replyTo:replyTo, mainComment:mainComment};
+                var commentstr = {floor: floor, userId: this.user.userid, content: comstr, blogId: blogid, replyTo:replyTo, mainComment:mainComment, manage:1};
                 alert(JSON.stringify(commentstr));
-                //alert("blogid"+" "+blogId);
-                $.post("/comment/add", commentstr, function(data, status){
-                    //comments_panel.comments = ;//直接修改comments即可，无需向后台申请，后台评论的结构需要修改
-
+                $.post("/api/comment/manage", commentstr, function(data, status){
+                     //重置VUE
+                    if(data.success){
+                        window.location.reload();
+                    }
                 });
-                // $.getJSON(`/api/comment/:${currentPage_flag}`, function(data, status){ 
-                //     var data_temp = JSON.stringify(data);
-                //     var data_fin = JSON.parse(data_temp);
-                //     console.log(data_fin.studies);
-                //     this.studies = data_fin.studies;//此时的this为$.getJSON(),不是studies_panel对象
-                //                                     不会赋值给studies
-                //     studies_panel.studies = data.studies;
-                // }); 
             },
             insertReply: function(evt){
                 var rep = $(evt.target);
@@ -140,30 +153,16 @@ $(function(){
                 </div>
                 <div class="media-body main-floor" v-bind:data-my-floor="comment.mainComment.floor_no">
                    <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
-                   <p class="username-css" v-bind:data-userid="comment.mainComment.id">{{comment.mainComment.self.name}}</p>
+                   <p class="username-css" v-bind:data-userid="comment.mainComment.self.id">{{comment.mainComment.self.name}}</p>
                    <p>{{comment.mainComment.content}}</p>
                    <p><span class="comment-time">{{comment.mainComment.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                    <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
-                   
-                    <!-- <div v-if="comment.subComment">
-                        <div v-for="reply in comment.subComment" class="media reply">
-                                <div class="media-left">
-                                    <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a>
-                                </div>
-                                <div class="media-body sub-comment">
-                                    <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
-                                    <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
-                                    <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
-                                </div>
-                        </div>
-                    </div>   -->
 
                     <template v-if="comment.subComment">
                         <div v-for="reply in comment.subComment" class="media reply">
                             <div class="media-left">
                                 <!-- <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a> -->
                                 <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
-                                
                             </div>
                             <div class="media-body sub-comment">
                                 <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
@@ -172,8 +171,6 @@ $(function(){
                             </div>
                         </div>
                     </template>  
-
-
                 </div>
             </div>
         {% endraw %}
@@ -181,12 +178,44 @@ $(function(){
         <div class="comment-edit main-comment">
             <form action="/api/add_comment" method="post">
                 <div class="form-group bottom-commit">
+                    <template v-if="!user">
+                        <div class="baffle-wrap">
+                            请先
+                            <button type="button" class="btn btn-primary minilogin-modal" data-toggle="modal" data-target="#myModal">登录</button>
+                            发布评论
+                        </div>
+                    </template>
                     <label for="#comment_title">编辑评论</label>
                     <!-- <input class="form-control" id="comment_title" placeholder="标题"> -->
                     <textarea class="form-control" id="textArea_comment" rows="5" placeholder="不吐不快"></textarea>
                 </div>
-                <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit($event)">提交</button>
+                <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit($event)">提交</button>  
             </form>
+        </div>
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content col-md-offset-4">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">登录</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="login-block">
+                            <form>
+                                <label for="#name">用户名</label>
+                                <input type="text" class="form-control" id="username">
+                                <label for="#passwd">密码</label>
+                                <input type="password" class="form-control" id="passwd">
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
+                        <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>   
 {% endblock %}

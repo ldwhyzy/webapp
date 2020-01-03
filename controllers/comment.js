@@ -29,13 +29,25 @@ function sqlDataToCommentData(sqlData){
                 id: sqlData[i].subComment[j].id,
                 content: sqlData[i].subComment[j].content, 
                 self: {id:sqlData[i].subComment[j]['self.id'], name:sqlData[i].subComment[j]['self.name']}, 
-                reply: {id:sqlData[i].subComment[j]['reply.id'], name:sqlData[i].subComment[j]['reply.name']}, 
+                reply: sqlData[i].subComment[j]['reply.id']===sqlData[i].mainComment['self.id']?null:{id:sqlData[i].subComment[j]['reply.id'], name:sqlData[i].subComment[j]['reply.name']}, 
                 //floor_no: sqlData[i].subComment[j].floor_no, 
                 created_at: new Date(sqlData[i].subComment[j].createdAt).toLocaleString('chinese',{hour12:false}),
             };
         }
     }
     return commentData;
+}
+
+function transformCommentOptions(optionsData){
+    if(typeof optionsData!=='object')return null;
+    var options = {
+        blog_id: parseInt(optionsData.blogId),
+        floor_no: parseInt(optionsData.floor),
+        content: optionsData.content,
+        user_id: parseInt(optionsData.userId),
+        reply_to: optionsData.replyTo?parseInt(optionsData.replyTo):null,
+    };
+    return options;
 }
 
 module.exports = {
@@ -55,9 +67,7 @@ module.exports = {
                 comments.push(JSON.parse(JSON.stringify(floorComment)));
             }
         }
-        console.log(JSON.stringify(comments));
         comments = sqlDataToCommentData(comments);
-        console.log(JSON.stringify(comments));
         ctx.rest({comments: comments});
     },
     'GET /comments/:id': async (ctx, next) => {
@@ -70,10 +80,30 @@ module.exports = {
         // }
         
     },
-
-    "POST /comment/add": async (ctx, next)=>{
-        var rtstr = ctx.request.body;
-
-        ctx.rest(rtstr);
-    }
+    "POST /api/comment/manage": async (ctx, next)=>{
+        var result = {success:false};
+        if(ctx.state.user){
+            var options = transformCommentOptions(ctx.request.body);
+            var manage = parseInt(ctx.request.body.manage);
+            if(options){
+                switch(manage){
+                    case 0:
+                        if(ctx.state.user.admin){
+                            let id = parseInt(ctx.request.body.commentId);
+                            result = await Comment.deleteComment(id);
+                        }    
+                        break;
+                    case 1:
+                        result = await Comment.createComment(options);
+                        break;
+                    case 2:
+                        if(ctx.state.user.admin||ctx.state.user.id==options.user_id){
+                            result = await Comment.updateComment(options);
+                    }
+                        break;        
+                }
+            }
+        }
+        ctx.rest(result);
+    }    
 };

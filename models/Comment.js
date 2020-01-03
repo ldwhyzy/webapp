@@ -63,7 +63,7 @@ Comment.floorOffsetFindComment =  function(rowCount, currentPage, options={}){//
 };
 
 Comment.findReplyComment =  function(blogid, floorNo){//查找回复评论
-    return this.findAll({where: {blog_id:blogid, floor_no:floorNo, reply_to:{[Op.not]:null}}, include:[{model: User, as:'self', attributes: ['id', 'name']}, {model: User, as:'reply', attributes: ['id', 'name']}], attributes: ['id', 'content', 'floor_no', 'createdAt',], 
+    return this.findAll({where: {blog_id:blogid, floor_no:floorNo, reply_to:{[Op.not]:0}}, include:[{model: User, as:'self', attributes: ['id', 'name']}, {model: User, as:'reply', attributes: ['id', 'name']}], attributes: ['id', 'content', 'floor_no', 'createdAt',], 
     order:[['createdAt','DESC']], raw: true});
 };
 

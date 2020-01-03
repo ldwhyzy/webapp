@@ -1,0 +1,372 @@
+{% extends "main_page.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<script src="static/js/contextmenu/jquery.contextMenu.js"></script>
+<script src="static/js/contextmenu/jquery.ui.position.min.js"></script>
+<link rel="stylesheet" href="static/js/contextmenu/jquery.contextMenu.min.css">
+<style type="text/css">
+/* .message-frame{border:solid #0b08eb 1px;}
+.users-list-frame{border:solid #210be9 1px;} */
+/* a:hover{text-decoration: none} */
+.my-margin{margin-left:15px;margin-top:10px;margin-bottom: 10px;}
+/* .chat-room{height:300px;} */
+.chat-room-panel{height:400px; font-size:11px;overflow-y: auto;}
+.baffle-wrap{position:absolute;left:0;top:0;width:100%;height:100%;z-index:12;text-align: center;
+             padding:2px;background-color: #eeeeee;opacity:0.8;filter:alpha(opacity=80);}
+.chats-list-panel ul{list-style-type:none;padding:0;}
+.chats-list-panel li a{overflow: hidden;}
+</style>
+<script type="text/javascript">
+/*博客正文页面，显示博客内容和评论，评论编辑功能
+评论编辑后，刷新全文，获取最新评论结构。以降低前端和后端的耦合程度。
+*/
+function miniloginHandler(){
+    //alert(document.activeElement.id);
+    var name = $("#username").val().trim();//邮箱或字符串
+    var passwd = $("#passwd").val().trim();//
+
+    if($("#test-li")){
+        $("#test-li").remove();
+    }
+    if(name.length<=50 && passwd.length<=50){
+        var user = {name:null, email:null, passwd:null};
+        if(emailValidate(name)){
+            user.email = name.toLowerCase(); 
+        }
+        else{
+            user.name = name;
+        }
+        user.passwd = pwHash(passwd);
+        //alert('userinfo: '+JSON.stringify(user));
+        $.post('/api/authenticate/login', user, function(data){
+            //alert('显示成功数据: '+JSON.stringify(data));
+            if(data.result=='Success'){location.reload();}
+            else if(data.result=='User Not Exist'){
+                $("#login-block").append("<li class='text-danger' id='test-li'>用户不存在，请注册</li>");
+                // $(".login-panel").dropdown("toggle"); 
+            }
+            else if(data.result=='Password Error'){
+                $("#login-block").append("<li class='text-danger' id='test-li'>密码错误</li>");
+                //$(".login-panel").dropdown("toggle"); 
+            }
+        
+        });     
+    }else{ //有误提示
+        $("#login-block").append("<li class='text-danger' id='test-li'>输入用户名或密码有误</li>");
+        //$(".login-panel").dropdown("toggle"); 
+    }       
+}
+$(function(){
+    var vmMessageList = new Vue({
+        el: '#message-list',
+        data: {
+            messages: []
+        }
+    });
+
+    var vmUserList = new Vue({
+        el: '#user-list',
+        data: {
+            users: [{name:"大明", id:"007", },
+                    {name:"小宋", id:"777", },
+                    {name:"唐唐", id:"001", },
+            ],
+        }
+    });
+
+    function addToUserList(list, user) {
+        var i;
+        for (i=0; i<list.length; i++) {
+            if (list[i].id === user.id) {
+                return;
+            }
+        }
+        list.push(user);
+    }
+    function removeFromUserList(list, user) {
+        var i, target = -1;
+        for (i=0; i<list.length; i++) {
+            if (list[i].id === user.id) {
+                target = i;
+                break;
+            }
+        }
+        if (target >= 0) {
+            list.splice(target, 1);
+        }
+    }
+    function addMessage(list, msg) {
+        list.push(msg);
+        $('#message-list').parent().animate({
+            scrollTop: $('#message-list').height()
+        }, 1000);
+    }
+    function createMessage(type, sendto, data) {
+        return JSON.stringify({
+            type: type,
+            sendto: sendto,
+            data: data
+        });
+    }
+    if(user&&user.username){
+        $.get('/api/thought/wsauthenticate', function(data){
+            var token = data.token;
+            var location = "ws://localhost:3001/ws/chat/?token="+token; 
+            var ws = new WebSocket(location);
+            ws.onmessage = function(evt) {
+                var data = evt.data; 
+                console.log(data);
+                var msg = JSON.parse(data);
+                if (msg.type === 'list') {
+                    vmUserList.users = msg.data;
+                } else if (msg.type === 'join') {
+                    addToUserList(vmUserList.users, msg.user);
+                    addMessage(vmMessageList.messages, msg);
+                } else if (msg.type === 'left') {
+                    removeFromUserList(vmUserList.users, msg.user);
+                    addMessage(vmMessageList.messages, msg);
+                } else if (msg.type.indexOf('chat')>-1) {
+                    addMessage(vmMessageList.messages, msg);
+                }
+            };
+            ws.onclose = function (evt) {
+                console.log('[closed] ' + evt.code + ' ' + evt.reason);
+                var input = $('#my-message').attr({ 'placeholder':'WebSocket disconnected.','disabled':'disabled' });
+                $('#sendmessage').attr('disabled', 'disabled');
+            };
+            ws.onerror = function (code, msg) {
+                console.log('[ERROR] ' + code + ': ' + msg);
+            };
+            $("#sendmessage").click(function(){
+                if(!user.userid||!user.username)return;
+                if($("#error-info-p"))$("#error-info-p").remove();
+                var messageText = $("#my-message").val().replace(/(^\[\S+\]\S+:)|(^@\S+:)/, '').trim();
+                if(messageText.length>50||messageText.length==0)
+                    $("#message-line").after("<p class='text-danger' id='error-info-p'>不要只输入空白符或超过50字符</p>");
+                else{
+                    let sendto = $("#my-message").attr("data-sendto")||null;
+                    let chattype = $("#my-message").attr("data-chattype")||'publicchat';
+                    let message = createMessage(chattype, sendto, messageText);
+                    ws.send(message);
+                    //$("#my-message").val("");
+                    $("#my-message").attr("data-sendto", null).attr("data-chattype", null).val("");
+                }
+                
+            });
+
+        });
+    }
+    // $('#form-chat').submit(function (e) {
+    //     e.preventDefault();
+    //     var input = $(this).find('input[type=text]');
+    //     var text = input.val().trim();
+    //     console.log('[chat] ' + text);
+    //     if (text) {
+    //         input.val('');
+    //         ws.send(text);
+    //     }
+    // });
+    // $(".chat-room-panel").on("click", "#message-list", function(e){
+    //     alert("gogogoo");
+    //     });    
+
+    $(".user-li").on("click",  function(e){
+       // alert($(e.target).parent().html());
+       e.preventDefault();
+        let dataid = $(e.target).parent().find("span").attr("data-id");
+        $("#my-message").val(`@${$(e.target).text()}: `).attr("data-sendto", dataid).attr("data-chattype", "publicchat").focus();
+    });    
+
+    $(".chat-room-panel").on("click",  ".msl-username", function(e){
+        e.preventDefault();
+        let dataid = $(e.target).parent().find("a").attr("data-id");
+        $("#my-message").val(`@${$(e.target).text()}: `).attr("data-sendto", dataid).attr("data-chattype", "publicchat").focus();
+    });  
+
+    $.contextMenu({
+        selector: '.user-li', 
+        callback: function(key, options) {
+            // var m = "clicked: " + key;
+            // window.console && console.log(m) || alert(m); 
+            return true;
+        },
+        items: {
+            "personalmessage": {
+                name: "单发消息",
+                callback: function(itemKey, opt, e){
+                // Alert the key of the item and the trigger element's id.
+                    // alert("Clicked on " + itemKey + " on element " + opt.$trigger.find("div:last"));
+                    let userli = opt.$trigger.find("span");
+                    let msl = $("#my-message").attr("data-sendto",userli.attr("data-id")).attr("data-chattype", "privatechat");
+                    
+                    msl.val(`[密信]@${userli.text()}:`).focus();
+                    // Do not close the menu after clicking an item
+                    return true;             
+                } ,
+         icon: "edit"},
+            "block": {name: "屏蔽", icon: "cut"},
+            "profile": {name: "查看个人中心", icon: "copy"},
+            // "paste": {name: "Paste", icon: "paste"},
+            // "delete": {name: "Delete", icon: "delete"},
+            "sep1": "---------",
+            "quit": {name: "Quit", icon: function(){
+                return 'context-menu-icon context-menu-icon-quit';
+            }}
+        },
+    });
+
+    // $('.user-li').on('click', function(e){
+    //     console.log('clicked', this);
+    // });
+
+ }); 
+</script>
+<script>
+
+</script>
+{% endblock %}
+{% block contentleft %}
+<div class="row ">
+    <img class="img-responsive" src="/static/images/matearial/sparrows.jpg">
+    <h4 class="page-header my-margin">聊天室</h4>
+   <div class="col-md-9 message-frame">
+        <div class="panel panel-default chat-room">
+            <div class="panel-heading" style="color: #e9059d;">大家来聊聊工程什么时候能完工吧</div>
+            <div class="panel-body chat-room-panel">
+                    <!-- <div v-for="reply in comment.subComment" class="media reply">
+                            <div class="media-left">
+                                <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                            </div>
+                            <div class="media-body sub-comment">
+                                <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
+                                <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                            </div>
+                        </div> -->
+
+                <!-- <div class="media reply">
+                    <div class="media-left">
+                        <a href="#"><img  class="img-circle" src="image_origin.png" onerror="this.src=placeholder.getData({size:'30x30', text: 'Image 404'})"></a>
+                    </div>
+                    <div class="media-body sub-comment">
+                        <p class="username-css" v-bind:data-userid="#" style="color:rgb(238, 187, 22)">大明</p>
+                        <p>大家好</p>
+                    </div>
+                </div>
+                <P>用户2： 等会我给大家整个</P> -->
+
+                <div id="message-list">
+                    <div style="margin-bottom:10px;" v-for="msg in messages">
+                        <div v-if="msg.type === 'join' || msg.type === 'left'">
+                            <div class="media-left">
+                                <img class="media-object" style="width:15px; height:15px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
+                            </div>
+                            <div class="media-body">
+                                <h4 class="media-heading" style="color:chartreuse" v-text="'[系统消息] '+msg.data"></h4>
+                            </div>
+                        </div>
+                        <div v-if="msg.type === 'publicchat'||msg.type === 'privatechat'">
+                            <div class="media">
+                                <div class="media-left">
+                                    <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
+                                </div>
+                                <div class="media-body">
+                                    <!-- <h4 class="media-heading msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name"></h4> -->
+                                    <h4 class="media-heading"><a class="msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name" href="#"></a></h4>
+                                    <span style="color: rgb(31, 16, 245);" v-if="msg.type === 'privatechat'" v-text="'[密信]'+msg.user.name+' @'+msg.sendto.name+': '"></span>
+                                    <span style="color: rgb(84, 18, 238);" v-if="msg.type === 'publicchat'&&msg.sendto" v-text="'@'+msg.sendto.name+': '"></span>
+                                    <!-- <span style="color: brown;" v-else v-text="msg.user.name+' @'+msg.sendto.name+': '"></span> -->
+                                    <span v-text="msg.data"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="input-group" id="message-line">
+            {% if not __user__ %}
+            <div class="baffle-wrap">
+                请先
+                <button type="button" class="btn btn-primary button-spacing blog-modal" data-toggle="modal" data-target="#myModal">登录</button>
+                来交流
+            </div>
+            {% endif %}
+            <input type="text" class="form-control" placeholder="来和大家交流吧！" id="my-message">
+            <span class="input-group-btn">
+                <button class="btn btn-primary" id="sendmessage" type="button">发送</button>
+            </span>
+        </div>
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content col-md-offset-4">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">登录</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div id="login-block">
+                                <form>
+                                    <label for="#name">用户名</label>
+                                    <input type="text" class="form-control" id="username">
+                                    <label for="#passwd">密码</label>
+                                    <input type="password" class="form-control" id="passwd">
+                                </form>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
+                            <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
+                        </div>
+                    </div>
+                </div>
+        </div>
+   </div>
+   <div class="col-md-3 users-list-frame">
+        <div class="panel panel-default" id="user-list">
+            <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> 列表 (<span v-text="users.length"></span>)</div>
+            <div class="panel-body">
+                    <div style="height:400px; overflow-x:hidden; overflow-y:auto;">
+                        <div id="user-list-panel">
+                            <div class="media user-li" v-for="user in users">
+                                <div class="media-left">
+                                    <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + user.image + '.png'">
+                                </div>
+                                <div class="media-body">
+                                    <a href="#"><span style="font-size:15px;" class="media-heading" v-text="user.name" v-bind:data-id="user.id"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block contentright %}
+<div style="margin-top:20px;">
+    <blockquote>
+        <p>&emsp;&emsp;与人交谈一次，往往比多年闭门劳作更能启发心智。思想必定是在与人交往中产生，而在孤独中进行加工和表达。</p>
+        <footer class="text-right"><cite title="Source Title">列夫·托尔斯泰</cite></footer>
+    </blockquote>
+</div>
+<!-- <div>
+    <h4><a href="#">往期聊天主题历史</a></h4>
+    <p>往期聊天主题历史1</p>
+    <p>往期聊天主题历史2</p>
+    <p>往期聊天主题历史3</p>
+</div> -->
+<div class="panel panel-default chats-list-panel">
+    <div class="panel-heading">往期聊天记录 <a class="pull-right" href="#">查看更多</a></div>
+    <div class="panel-body">
+        <ul>
+            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
+            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
+            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
+            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

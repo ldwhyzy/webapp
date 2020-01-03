@@ -18,6 +18,7 @@
     },
     "dependencies": {
         "crypto-js": "^3.1.9-1",
+        "jquery-contextmenu": "^2.9.0",
         "koa": "^2.0.0",
         "koa-bodyparser": "^3.2.0",
         "koa-router": "^7.0.0",
@@ -26,6 +27,10 @@
         "mysql2": "^1.6.5",
         "mz": "^2.4.0",
         "nunjucks": "^3.2.0",
-        "sequelize": "^4.0.0"
+        "sequelize": "^4.44.3",
+        "ws": "^7.2.0"
+    },
+    "optionalDependencies": {
+        "utf-8-validate": "^5.0.2"
     }
 }

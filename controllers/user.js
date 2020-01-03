@@ -40,4 +40,30 @@ module.exports = {
             ctx.response.redirect('/');
         }
     },
+    'GET /user/space/:id': async (ctx, next) => {
+        var user = ctx.state.user;
+        try{
+            var id = parseInt(ctx.params.id);
+            if(!Number.isNaN(id)){
+                var userdata = await User.findUserById(id);
+                if(user&&userdata&&(user.id==userdata.id)){
+                    ctx.response.redirect('/user/profile');
+                }else if(userdata){
+                    ctx.render("space.html", {userdata:userdata});
+                }
+            }else{
+                ctx.response.redirect('/404');
+            }
+        }catch(err){
+            ctx.response.redirect('/404');
+        }
+    },
+    'POST /api/user/privatemassage': async (ctx, next)=>{
+        var user = ctx.state.user;
+        if(user){
+            var messageData = ctx.request.body;
+            var result = await Message.createMessage(messageData);
+            if(result)ctx.rest({success:true});
+        }
+    },
 };
