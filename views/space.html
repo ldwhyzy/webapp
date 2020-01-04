@@ -92,12 +92,12 @@ $(function(){
     });
     
     $(".info-list").mouseleave(function(){
-            $(this).children().each(function(){
-                var link = $(this).find("a");
-                if(link.hasClass("my-clicked"))return;
-                link.css({backgroundColor: "#f8f8f8", color: "#08c"});
-                }
-            );
+        $(this).children().each(function(){
+            var link = $(this).find("a");
+            if(link.hasClass("my-clicked"))return;
+            link.css({backgroundColor: "#f8f8f8", color: "#08c"});
+            }
+        );
     });
 
     $("#send-message").click(function(){

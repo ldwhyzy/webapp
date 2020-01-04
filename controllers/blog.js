@@ -61,34 +61,6 @@ function ctxurlparse(urlstr){
 }
 
 module.exports = {
-    // 'POST /blog/blog_edit': async (ctx, next) => {
-    //     if(ctx.state.user&&ctx.state.user.admin){
-    //         var blogData = {title:null, content:null, addClass:null,firstClass:null,secondClass:null,publish:null};
-    //         if(ctx.request.body.id>0)
-    //         blogData = {
-    //             title: "第一篇博客 我的奋斗",
-    //             content:"主人公はやや内気な普通の男子学生・浩太&lt;br&gt;\
-    //             ある夏休み、両親が旅行へ行ってしまい、生活力のない彼の身の回りの世話をするために、<br>\
-    //             遠縁の女性・結衣がやってくる。<br>\
-    //             彼女は幼い頃、夏休みを共に過ごしていた初恋の人だった。<br>\
-    //             数年前に結婚し、人妻になったためか、以前に増してやさしく甘い結衣に、<br>\
-    //             主人公は惹かれ、抑えきれない欲望をぶつけてしまう。<br>\
-    //             少年とお姉さんだったはずの2人の関係は徐々に深まっていく。<br>",
-    //             addClass:"杂论快点完成吧",
-    //             firstClass:0,
-    //             secondClass:2,
-    //             publish:0,
-    //         };
-
-    //         ctx.render('blog_edit.html', {
-    //             title: '个人博客|技术|杂感',
-    //             __admin__: true,
-    //             __blogData__: blogData,
-
-
-    //         });
-    //     }
-    // },
     'GET /blog/blogs/theme/:id': async (ctx, next) => {
             var userid = ctx.state.user&&ctx.state.user.id;
             var themeid = parseInt(ctx.params.id);
@@ -182,21 +154,6 @@ module.exports = {
             ctx.rest({blogs: blogs});
         //}
     },
-    // 'POST /blog/api/blog_id_check': async (ctx, next) => {
-    //     if(ctx.state.user&&ctx.state.user.admin){
-    //         var blogid = parseInt(ctx.request.body.id);
-    //         var blogData = {userid: ctx.state.user.id, title:'新博客', content:'新博客内容', addClass:'添加的分类' ,firstClass:0, secondClass:0, publish:3};
-    //         var blog = null;
-    //         if(blogid>0){
-    //             blog = await Blog.findBlogById(blogid);
-    //         }    
-    //         else{//创建新博客后得到的ID
-    //             blog = await Blog.createBlog(blogData);
-    //         }
-    //         console.log('[POST /blog/api/blog_id_check]' + JSON.stringify(blog));
-    //         ctx.rest(blog);
-    //     }
-    // },
     'POST /api/blog/manage': async (ctx, next) => {
         var result = null;
         if(ctx.state.user&&ctx.state.user.admin){
@@ -271,5 +228,13 @@ module.exports = {
             
             ctx.rest({blogs: blogs});
         //}
+    },
+    'GET /blog/search': async (ctx, next) => {
+        console.log('***********************');
+        console.log(ctx.querystring);
+        console.log('***********************');
+        ctx.render('register.html', {
+            title: ctx.querystring+' | 个人博客',
+        });
     },
 };

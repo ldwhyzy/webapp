@@ -17,7 +17,7 @@ function registerValidate(){
     if($(".error-info"))$(".error-info").remove();
     
     var registerBtn = document.getElementById("register-btn");
-    //registerBtn.setAttribute("disabled", "disabled");
+    registerBtn.setAttribute("disabled", "disabled");
     
     var name = $("#username").val().trim();    
     if(!name || name.length>50){
@@ -80,8 +80,10 @@ function registerValidate(){
 }
 
 $(function(){
-var formgroup = $(".form-group");
-
+    $("#username,#emil,#passwd,#repasswd").bind('keyup',function(event){
+        if(event.keyCode=="13")
+            $("#register-btn").trigger("click");
+    });
 
 //formgroup.addClass("has-error");
 });

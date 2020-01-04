@@ -68,7 +68,7 @@
             function pwHash(passwd){
                 return CryptoJS.SHA1(passwd).toString(CryptoJS.enc.Hex);
                 //return passwd;
-;            }
+            }
             
             function emailValidate(email){
                 var EmailPattern = /^[a-zA-Z0-9\.\-\_]+\@[a-zA-Z0-9\-\_]+(\.[a-zA-Z0-9\-\_]+){1,4}$/;
@@ -148,9 +148,23 @@
             $(".login-panel").click(function(e){
                     e.stopPropagation();
                 });
+
+            $("#blog-search").on('click', function(){
+                var keyword = $("#blog-search-content").val().trim();
+                if(keyword.length>50||!keyword)return;
+                else{
+                    //location.assign("/blog/search?keyword="+ encodeURIComponent(keyword));
+                    location.assign("/blog/search");
+                }
+            });    
+
+            $("#blog-search-content").on('keyup',function(event){
+                if(event.keyCode=="13")
+                    $("#blog-search").trigger("click");
+            });    
         });
 
-            </script>
+        </script>
         
         {% block beforehead %}<!-- before head  -->{% endblock %}
 	</head>
@@ -260,9 +274,9 @@
                 <div class="col-md-3 col-md-offset-1 main-right">
                     <div class="blog-theme-area">
                         <div class="input-group" style="margin-bottom:30px;">
-                            <input type="text" class="form-control" placeholder="博客搜索" id="history-message">
+                            <input type="text" class="form-control" placeholder="博客搜索" id="blog-search-content">
                             <span class="input-group-btn">
-                                <button class="btn btn-primary" id="history-search" type="button"><span class="glyphicon glyphicon-search"></span></button>
+                                <button class="btn btn-primary" id="blog-search" type="button"><span class="glyphicon glyphicon-search"></span></button>
                             </span>
                         </div>
                         <h4>标签</h4>
