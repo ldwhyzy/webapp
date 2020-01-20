@@ -1,0 +1,51 @@
+{% extends "base_head.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<style type="text/css">
+.public-time{font-size:10px;}
+.blog-theme-area{position:absolute;margin-top:30%;margin-right:10px;}
+.blog-theme button{margin:3px;}
+</style>
+{% block beforeheadone %}
+{% endblock %} 
+{% endblock %} 
+{% block contentmain %}
+<div class="col-md-8 main-left">
+    {% block contentleft %}
+    {% endblock %}
+</div>
+<div class="col-md-3 col-md-offset-1 main-right">
+    <div class="blog-theme-area">
+        <div class="input-group enter-submit-block" style="margin-bottom:30px;">
+            <input type="text" class="form-control enter-submit-input" placeholder="博客搜索" id="blog-search-content">
+            <span class="input-group-btn">
+                <button class="btn btn-primary enter-submit-btn" id="blog-search" type="button"><span class="glyphicon glyphicon-search"></span></button>
+            </span>
+        </div>
+        <h4>标签</h4>
+        <div class="blog-theme">
+            {% for blogtheme in blogthemes %}
+                <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{blogtheme.id}}">{{blogtheme.value|truncate(13, false, ' ...')}}</button>
+            {% else %}
+                <p>添加标签，让人眼前一亮吧！</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $("#blog-search").on("click", function(event){
+            //var path = $(event.target).attr("data-path");
+            var searchstr = $("#blog-search-content").val().trim();
+            alert(searchstr);
+            location.assign(`/blog/blogs/search?keyword=${themestr}`);
+        });
+
+        $(".btn-blog-theme").click(function(event){
+            var themeid = $(event.target).attr("data-id");
+            var themestr = $(event.target).html();
+            location.assign(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
+        });
+    });	
+</script>
+{% endblock %}

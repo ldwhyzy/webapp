@@ -1,4 +1,14 @@
 const nunjucks = require('nunjucks');
+const getIntervalTime = require('./utils/tools').getIntervalTime;
+
+function getPublishTime(UTCtime){
+    var intervalTime = getIntervalTime(UTCtime);
+    if(!intervalTime)return '鏈煡鏃剁┖';
+    else return intervalTime;
+}
+
+filters = {getPublishTime:getPublishTime, };
+
 
 function createEnv(path, opts){
     var 
@@ -23,8 +33,9 @@ function createEnv(path, opts){
     return env;    
 }
 
-function templating(path, opts, app){  //为app.context上下文添加函数，该函数实现nunjucks功能，返回已处理好参数的网页
-    var env = createEnv(path, opts);   //path 为HTML文件路径
+function templating(path, opts, app){  //app.context
+    opts.filters = filters;
+    var env = createEnv(path, opts);   //path of .HTML files
     app.context.render = function (view, model){
         this.response.body = env.render(view, Object.assign({}, this.state || {}, model || {}));
         this.response.type = 'text/html';

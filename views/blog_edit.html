@@ -55,7 +55,7 @@
                 if(!content||content.length>100000)return -2;
                 var firstClass = $("#first-class option:selected").val();
                 var secondClass = $("#second-class option:selected").val();
-                var addedClass = $("#add-class").val();
+                var addedTag = $("#add-tag").val();
                 var publish = $("input:radio[name='publishOptions']:checked").val();
                 //  alert("title: "+title+"\n"+
                 //        "content: "+content+"\n"+
@@ -65,7 +65,7 @@
                 //        "publish: "+publish
                 //  );
                 return {blogid:blogid, title:title, content:content, firstClass:firstClass, 
-                        secondClass:secondClass, addedClass:addedClass, publish:publish,};
+                        secondClass:secondClass, addedTag:addedTag, publish:publish,};
             }
 
             $(function(){
@@ -114,6 +114,17 @@
                     var editWindow = window.open(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
                 });
 
+                $('#myModal').on('show.bs.modal', function (e) {
+                    var title = $("#blog-title").val();
+                    var content = $("#blog-content").val();
+                    var addedTag = $("#add-tag").val();
+
+                    $(this).find("#preview-header").text(title);
+                    $(this).find("#preview-mainbody").text(content);
+                    $(this).find("#preview-tag").text(addedTag);
+    
+                });
+
             });    
         </script>
         {% block beforehead %}<!-- before head  -->{% endblock %}
@@ -140,63 +151,91 @@
                     <div class="col-md-8 main-left">
                         <!-- {% block contentleft %}content{% endblock %} -->
                         <div id="blog-edit">
-                        <h3 class="page-header">博客发表</h3>
-                        <form>
-                            <div class="form-group">
-                                <label for="blog_title">博客标题</label>
-                                <input type="text" class="form-control" id="blog-title" placeholder="标题" value="{{ __blogData__.title }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="blog_content">博客内容</label>
-                                <textarea class="form-control" id="blog-content" rows="30" placeholder="不吐不快" style="white-space: pre-wrap">{{ __blogData__.content }}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="add_class">添加分类标签</label>        
-                                <input type="text" class="form-control" id="add-class" placeholder="添加分类">
-                            </div>
-                        </form>
-                        <form class="form-inline">
-                            <div class="form-group">
-                                <div class="class-margin-right">
-                                    <label for="select_class" class="control-label-my">专栏分类 :</label>   
-                                    <select class="form-control" id="first-class">
-                                        <option>技术</option>
-                                        <option>杂趣</option>
-                                    </select>
+                            <h3 class="page-header">博客发表</h3>
+                            <form>
+                                <div class="form-group">
+                                    <label for="blog_title">博客标题</label>
+                                    <input type="text" class="form-control" id="blog-title" placeholder="标题" value="{{ __blogData__.title }}">
                                 </div>
-                                <div class="class-margin-right">
-                                    <label for="select_content" class="control-label-my">主题分类 :</label>     
-                                    <select class="form-control" id="second-class">
-                                        <!-- <option>Java</option>
-                                        <option>JavaScript</option>
-                                        <option>Python</option>
-                                        <option>C</option> -->
-                                        {% for option in __secondClass__ %}
-                                        <option value="{{option.id}}">{{option.str}}</option>
-                                        {% endfor %}
-                                    </select>
+                                <div class="form-group">
+                                    <label for="blog_content">博客内容</label>
+                                    <textarea class="form-control" id="blog-content" rows="30" placeholder="不吐不快" style="white-space: pre-wrap">{{ __blogData__.content }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="add-tag">添加分类标签</label>        
+                                    <input type="text" class="form-control" id="add-tag" placeholder="无额外标签，可以不添加">
+                                </div>
+                            </form>
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <div class="class-margin-right">
+                                        <label for="select_class" class="control-label-my">专栏分类 :</label>   
+                                        <select class="form-control" id="first-class">
+                                            <option>技术</option>
+                                            <option>杂趣</option>
+                                        </select>
+                                    </div>
+                                    <div class="class-margin-right">
+                                        <label for="select_content" class="control-label-my">主题分类 :</label>     
+                                        <select class="form-control" id="second-class">
+                                            <!-- <option>Java</option>
+                                            <option>JavaScript</option>
+                                            <option>Python</option>
+                                            <option>C</option> -->
+                                            {% for option in __secondClass__ %}
+                                            <option value="{{option.id}}">{{option.str}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                            <label>
+                                发布形式 :
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="publishOptions" id="inline-radio1" value="public">
+                                公开
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="publishOptions" id="inline-radio2" value="private">
+                                私密
+                            </label>
+                            <div><span class="help-block">温馨提示：请勿发布涉及政治、广告、营销、翻墙、违反国家法律法规等内容</span></div>
+                            <div class="fuction-button-line">
+                                <button type="button" class="btn btn-default button-spacing blog-publish">发布博客</button>
+                                <button type="button" class="btn btn-default button-spacing blog-tempsave">保存草稿</button>
+                                <button type="button" class="btn btn-default button-spacing blog-modal" data-toggle="modal" data-target="#myModal">预览</button>
+                                <button type="button" class="btn btn-default button-spacing blog-cancel">取消</button>
+                            </div>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="myModalLabel">博客预览</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h3 class="page-header" id="preview-header">博客标题</h3>
+                                            <div>
+                                                <P id="preview-mainbody">
+                                                        嗨～各位八月初好呀，八月也开始热了，我整个人都熟了，北极也好像开始融化了，那么全球温室效应该怎么办……也跟我没多大关系。
+                        
+                                                        扯远了，本篇为八月最新，内容还是略微不错的
+                                                        
+                                                        兄妹
+                                                </P>
+                                                <span class="glyphicon glyphicon-tag"></span><span id="preview-tag"></span>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary" data-dismiss="modal">确认</button>
+                                        <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                        <label>
-                            发布形式 :
-                        </label>
-                        <label class="radio-inline">
-                            <input type="radio" name="publishOptions" id="inline-radio1" value="public">
-                            公开
-                        </label>
-                        <label class="radio-inline">
-                            <input type="radio" name="publishOptions" id="inline-radio2" value="private">
-                            私密
-                        </label>
-                        <div><span class="help-block">温馨提示：请勿发布涉及政治、广告、营销、翻墙、违反国家法律法规等内容</span></div>
-                        <div class="fuction-button-line">
-                            <button type="button" class="btn btn-default button-spacing blog-publish">发布博客</button>
-                            <button type="button" class="btn btn-default button-spacing blog-tempsave">保存草稿</button>
-                            <button type="button" class="btn btn-default button-spacing blog-modal" data-toggle="modal" data-target="#myModal">预览</button>
-                            <button type="button" class="btn btn-default button-spacing blog-cancel">取消</button>
                         </div>
-                    </div>
                     </div>
                     <div class="col-md-3 col-md-offset-1 main-right">
                         <div class="blog-theme-area">
@@ -205,12 +244,6 @@
                                 {% for option in __secondClass__ %}
                                 <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{option.id}}">{{option.str}}</button>
                                 {% endfor  %}
-                                <!-- <button type="button" class="btn btn-primary">主题2</button>
-                                <button type="button" class="btn btn-primary">主题3</button>
-                                <button type="button" class="btn btn-primary">主题4</button>
-                                <button type="button" class="btn btn-primary">主题5</button>
-                                <button type="button" class="btn btn-primary">主题6</button>
-                                <button type="button" class="btn btn-primary">主题7</button> -->
                             </div>
                             <h4>添加标签</h4>
                             <div class="blog-theme-add col-md-9">
@@ -231,35 +264,5 @@
                 <p> Copyright &copy; 2018. <span>Powered by node.js · ldstargazer@gmail.com</span></p>
 		    </footer>
         </div>
-      
-        <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">博客预览</h4>
-                    </div>
-                    <div class="modal-body">
-                    <h3 class="page-header">博客标题</h3>
-                    <div>
-                        <P>
-                                嗨～各位八月初好呀，八月也开始热了，我整个人都熟了，北极也好像开始融化了，那么全球温室效应该怎么办……也跟我没多大关系。
-
-                                扯远了，本篇为八月最新，内容还是略微不错的
-                                
-                                兄妹
-                        </P>
-                    </div>
-                    </div>
-                    <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script> 
-        </script>
 	</body>
 </html>

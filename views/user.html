@@ -15,10 +15,6 @@ label{/*font-family:"Times New Roman", Times, serif;*/
 .pic-upload{width:100px;}
 </style>
 <script type="text/javascript">
-    function saveInfo(){
-        $("#email").val().trim();
-    }
-
     function changePic() {
         var reads= new FileReader();
         f=document.getElementById('img-file').files[0];
@@ -53,10 +49,6 @@ label{/*font-family:"Times New Roman", Times, serif;*/
     const vm = new Vue({
         el: "#user-info",
         data: {
-            // name: userinfoTemp.name,
-            // email: userinfoTemp.email,
-            // portrait: userinfoTemp.portrait,
-            // selfInfo: userinfoTemp.selfInfo
             name: "user",
             email: "email",
             admin:false,
@@ -80,11 +72,13 @@ label{/*font-family:"Times New Roman", Times, serif;*/
                 var userInfo = {name: vm.name, email: vm.email, portrait: vm.portrait, selfInfo: vm.selfInfo};
                 $.post("/api/user/info_save", userInfo, function(data, status){
                     console.log(JSON.stringify(data)+" "+status);
+                    if(data.success)location.reload();
                     //alert(JSON.stringify(data));
-                    vm.name = data.name;
-                    vm.email =  data.email;
-                    vm.portrait = data.portrait;
-                    vm.selfInfo = data.selfInfo;
+                    // vm.name = data.name;
+                    // vm.email =  data.email;
+                    // vm.portrait = data.portrait;
+                    // vm.selfInfo = data.selfInfo;
+                    
                 });
             }
         }
@@ -102,7 +96,7 @@ label{/*font-family:"Times New Roman", Times, serif;*/
             <h3 class="page-header">个人信息</h3>
             <dl class="dl-horizontal">
                 <dt>用户名</dt>
-                <dd>{{ name }}</dd>
+                <dd><input type="text" name="name" id="name" v-model="name"></dd>
             </dl>
             <dl class="dl-horizontal">
                 <dt>电子邮箱</dt>
@@ -120,9 +114,8 @@ label{/*font-family:"Times New Roman", Times, serif;*/
                 </template>
                 <template v-else>
                     <!-- <dd><img class="media-object" data-src="holder.js/150x150" alt="用户头像" id="user-portrait1"></dd> -->
-                    <dd><img src="/static/images/yuri_re.png" id="user-portrait" width="150px"></dd> 
+                    <dd><img src="/static/images/user_portrait/yuri_PR.png" id="user-portrait" width="150px"></dd> 
                 </template>
-                
                 <dd>预览</dd>
             </dl>
             <dl class="dl-horizontal">

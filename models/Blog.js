@@ -3,7 +3,6 @@ const db = require('../db');
 var Blog = db.defineModel('blogs', {
     user_id: db.STRING(50),
     title: db.STRING(50),
-    summary: db.STRING(200),
     content: db.TEXT('medium'),
     add_Class: db.STRING(50),
     first_class: db.INTEGER,
@@ -15,7 +14,6 @@ Blog.createBlog = async function(blog){
     let blogData = {};
     blogData.user_id = blog.userid;
     blogData.title = blog.title;
-    blogData.summary = blog.content&&blog.content.slice(0, 200);
     blogData.content = blog.content;
     blogData.add_Class = blog.addClass;
     blogData.first_class = blog.firstClass;

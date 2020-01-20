@@ -61,6 +61,8 @@
                     firstLink = $(".info-list-item>a:first");
                 }else if(path.search("manage")>0){
                     firstLink = $(".info-list-item>a:last");
+                }else if(path.search("message")>0){
+                    firstLink = $(".info-list-item>a:eq(1)");
                 }
 
                 firstLink.css({backgroundColor: "#08c", color: "#f8f8f8"});
@@ -111,7 +113,7 @@
                                 <span class="icon-bar"></span>
                         </button>
                         <!-- <a class="navbar-brand" href="/"><img id="brand-img" alt="Brand" src="/static/images/yuri_re_30.png"> </a> -->
-                        <a class="navbar-brand my-home-icon" href="/"><span class="glyphicon glyphicon-home" style="color: rgb(40, 12, 77)"></span></a>
+                        <a class="navbar-brand my-home-icon" href="/"><span class="glyphicon glyphicon-home" style="color: rgb(66, 20, 233)"></span></a>
                     </div>
                     <div  class="collapse navbar-collapse" id="#">
                         <ul class="nav navbar-nav navbar-right">
@@ -124,8 +126,7 @@
                     <div class="col-md-2 col-md-offset-1 left-panel">
                         <ul class="info-list">
                             <li class="info-list-item"><a href="/user/profile">个人信息</a></li>
-                            <!-- <li class="info-list-item"><a href="#">个人足迹</a></li>
-                            <li class="info-list-item"><a href="#">个人评论</a></li> -->
+                            <li class="info-list-item"><a href="/user/message">站内消息</a></li>
                             {% if __admin__ %}
                             <li class="info-list-item"><a href="/user/manage" class="manage">管理博客</a></li>
                             {% endif %}

@@ -71,6 +71,14 @@ module.exports = {
                 title: keywords.keyword+' | 个人博客',
             });
     },
+    'GET /blog/study': async (ctx, next) => {
+        var title = '学习';
+        var blogs = {};    
+        ctx.render('blogs_page.html', {
+            title: title+' | 个人博客',
+            blogs: blogs,
+        });
+},
     'GET /blog/fun': async (ctx, next) => {
             var title = '杂趣';    
             ctx.render('footles.html', {

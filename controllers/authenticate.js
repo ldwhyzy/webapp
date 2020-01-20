@@ -40,12 +40,13 @@ module.exports = {
         if(!exist.nameE && !exist.emailE){
             //userinfo.passwd = cryptoJS.SHA1('userinfo.passwd').toString(cryptoJS.enc.Hex);
             //console.log('useinfo passwd'+ userinfo.passwd); 
-            let user = await User.createUser(userinfo);
-            //ctx.state.userid = user.id;
-            //ctx.state.username = encodeURIComponent(user.name);
-            ctx.state.user = user.get({plain:true});
-            await (cookieset.cookieSet())(ctx, next);
-            returnInfo.info = "success";
+            let result = await User.createUser(userinfo);
+            if(result.result){
+                let user = result.userInstance;
+                ctx.state.user = user.get({plain:true});
+                await (cookieset.cookieSet())(ctx, next);
+                returnInfo.info = "success";
+            }
         }
         else{
             returnInfo.info = (exist.emailE && "duplicate-email") || (exist.nameE && "duplicate-name");

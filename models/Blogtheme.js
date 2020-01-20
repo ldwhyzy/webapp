@@ -1,12 +1,12 @@
 const db = require('../db');
 
 var Blogtheme = db.defineModel('blogtheme', {
-    theme_id: db.INTEGER,
+    theme_class: db.INTEGER,
     content: db.STRING(50),
 });
 
 Blogtheme.createBlogtheme = async function(theme){
-    let blogtheme = {theme_id: themeid, content:theme.content};
+    let blogtheme = {theme_class: themeclass, content:theme.content};
     return await this.create(blogtheme);//将findOrCreate功能拆开 await才能使用                                  
 };
 
@@ -25,7 +25,7 @@ Blogtheme.findBlogById = function(id){
     return this.findByPk(id);
 };
 Blogtheme.countAllBlogtheme = function(){
-    return this.count({col:"id"});
+    return this.count({where:{theme_class: 1}, col:"id"});
 };
 Blogtheme.offsetFindBlogtheme = function(rowCount, currentPage, options){
     return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount});

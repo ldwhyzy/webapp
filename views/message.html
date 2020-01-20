@@ -1,0 +1,142 @@
+{% extends "side.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<!--
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.0/dist/jquery.validate.min.js">
+<link rel="stylesheet" href="/static/js/jquery.validate.min.js">-->
+<style type="text/css">
+label{/*font-family:"Times New Roman", Times, serif;*/
+    font-weight:normal;
+}
+
+.right-panel{margin-left:10px;background:#f8f8f8;padding-bottom: 10px;}
+.dl-horizontal dt{width:120px;}
+#img-file{opacity: 0;width:0;height:0;}
+.pic-upload{width:100px;}
+.grey-color{color:#707070;}
+.my-margin-buttom{margin-bottom: 3px;}
+</style>
+<script type="text/javascript">
+//test var in $(function())
+//var t = null;
+ $(function(){
+    var offsetData = {messageRow:5, currentPage:1};
+
+    const messages = [
+                        {
+                            id: 1,
+                            from: {id:1, name:'gogogo', portrait:'/static/images/user_portrait/2.jpg'},
+                            content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
+                                如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
+                            createdAt:ldzyUtil.getIntervalTime('1578836400802'),
+                            showReplyDom: false,
+                            replyMessageContent:''
+                        },
+                        {
+                            id:2,
+                            from: {id:2, name:'gogagjaoogogo', portrait:'/static/images/user_portrait/2.jpg'},
+                            content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
+                                如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
+                            createdAt:ldzyUtil.getIntervalTime('1578836400802'),
+                            showReplyDom: false,
+                            replyMessageContent:''
+                        },
+    ];
+
+    const vm = new Vue({
+        el: "#message-info",
+        data: {
+            messages:[],
+        },
+        created: function(){
+            //获取属性$.getJson();
+            $.get("/api/user/message/", function(data, status){
+                if(status.success)
+                vm.messages = data;
+            });
+            this.messages = messages; 
+        },
+        methods:{
+            deleteMessage: function(message){
+                $.get("/message/deleteMessage/"+message.id, function(data){
+
+                });
+            },
+            replyMessage: function(message){
+                if(message.replyMessageContent){
+                    var privateMessage = {to: message.id, content: message.replyMessageContent};
+                    $.post('/api/message/createMessage', privateMessage, function(data){
+                        if(data.success){
+                            message.replyMessageContent = "";
+                            message.showReplyDom = false;
+                        }
+                    });
+                }
+            },
+            replyDomControl: function(message, control){
+                message.showReplyDom = control;
+            }
+        }
+    });
+
+    $.get("/api/message/privatemessage_count", function(data, status){ //获取study类文章总6
+        if(typeof data.messagesCount !=='number')data.messagesCount = parseInt(data.messagesCount);
+        totalPages = Math.ceil(data.messagesCount/offsetData.messageRow)||1;
+        // totalPages =20;
+        $('#jq-pagi').jqPaginator({//分页设置
+            totalPages: totalPages,
+            visiblePages: 8,
+            currentPage: 1,
+            first: '<li class="first"><a href="javascript:void(0);">第一页</a></li>',
+            prev: '<li class="prev"><a href="javascript:void(0);">前一页</a></li>',
+            next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
+            last: '<li class="last"><a href="javascript:void(0);">末尾页</a></li>',
+            page: '<li class="page"><a href="javascript:void(0);">{% raw %}{{page}}{% endraw %}</a></li>',//防止后端jinja2解析导致填为空
+
+            onPageChange: function (num, type) {
+                // $('.text-test').html('当前第' + num + '页');
+                offsetData.currentPage = num;
+                if(type=="change"){
+                    $.post(`/api/message/page/${offsetData.currentPage}`, {messageType:"privateMessage", offsetData:offsetData}, function(data, status){   
+                        //this.currentPage = num;
+                        vm.messages = data.messages;
+                        
+                    }); 
+                }
+            }  
+        }); 
+    }); 
+ });
+</script>
+{% endblock %} 
+
+{% block content %}
+    {% raw %}
+    <div class="col-md-7 right-panel">  
+        <div class="message-data-panel" id="message-info" v-cloak>
+            <h3 class="page-header">站内消息</h3>
+            <div v-for="(message, index) in messages" :key="message.id"> 
+                <div class="media">
+                    <div class="media-left">
+                        <img class="media-object" style="width:30px; height:30px;" v-bind:src="message.from.portrait">
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading"><a v-bind:data-id="message.from.id" v-text="message.from.name" href="'/user/space/'+message.from.id"></a></h4>
+                        <p v-text="message.content"></p>
+                        <p>
+                        <span class="grey-color" v-text="message.createdAt"></span>
+                        <span class="pull-right"><a href="#"  @click.prevent="replyDomControl(message, true)">回复</a>&nbsp;&nbsp;<a href="#"  @click.prevent="deleteMessage(message)">删除</a></span>
+                        </p>
+                        <div class="form-group" v-show="message.showReplyDom">
+                            <textarea class="form-control my-margin-buttom" rows="5" placeholder="来而不往非礼也" v-model.lazy.trim="message.replyMessageContent"></textarea>
+                           <button type="button" class="btn btn-default" @click="replyMessage">提交</button>&nbsp;&nbsp;<button type="button" class="btn btn-default" @click="replyDomControl(message, false)">取消</button>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+            </div>
+        </div>
+        <div class="pagination" id="jq-pagi"></div>
+    </div>
+    {% endraw %}
+{% endblock %}

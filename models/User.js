@@ -5,7 +5,7 @@ const Op = db.Op;
 var User = db.defineModel('users', {
     email: {
         type: db.STRING(50),
-        unique: true
+        allowNull: true
     },    
     name: {
         type: db.STRING(50),
@@ -13,11 +13,11 @@ var User = db.defineModel('users', {
     },
     passwd: db.STRING(50),
     admin: {
-        type: db.BOOLEAN,
-        defaultValue: false
+        type: db.INTEGER,
+        defaultValue: 1
     },
 });
-//*
+
 User.createUser = async function(user){
     // this.findOrCreate({where: {[Op.or]:[{name: user.name},
     //                                     {email: user.email}]}, defaults:user})
@@ -28,29 +28,56 @@ User.createUser = async function(user){
     //     });
     // let result = await this.findOrCreate({where: {[Op.or]:[{name: user.name},
     //                                      {email: user.email}]}, defaults:user})[1];
-    return await this.create(user);//将findOrCreate功能拆开                                  
+    if(typeof user!=='object'||!user.name||!user.passwd)return {result:false};
+    let userData = { email: user.email||'', name: user.name, passwd: user.passwd};
+    try{
+        let userInstance =  await this.create(userData);//将findOrCreate功能拆开
+        if(userInstance)return {userInstance, result:true};   
+    }catch(err){
+        console.log('[User Model]createUser error.');
+        return {result:false};
+    }                              
 };
 
 //userFind: Object {name:string, email:string}
 User.userExist = async function(userFind){
     let checkInfo = {nameE:false, emailE:false};
-    let result1=null, result2=null;     
-    if(userFind.name)result1 = await this.findOne({where:{name:userFind.name}});
-    if(userFind.email)result2 = await this.findOne({where:{email:userFind.email}});
-    checkInfo = {nameE:checkInfo.nameE||!!result1, emailE:checkInfo.emailE||!!result2};
-    let user = result1||result2;
-    //return userInfo;
-    return {checkInfo:checkInfo, user:user};
+    let result1=null, result2=null;  
+    try{
+        if(userFind.name)result1 = await this.findOne({where:{name:userFind.name}});
+        if(userFind.email)result2 = await this.findOne({where:{email:userFind.email}});
+        let user = result1||result2;
+        checkInfo = {nameE:checkInfo.nameE||!!result1, emailE:checkInfo.emailE||!!result2};
+        return {checkInfo:checkInfo, user:user, result:true};
+    }catch(err){
+        console.log('[User Model]userExist error.');
+        return {result:false};
+    }    
 };
 
-User.updateUser = async function(id, values){
-    let user = await this.findByPk(id);
-    let result = await user.update(values);
-    return result;
+User.updateUser = async function(id, options){
+    try{
+        let t = await db.transaction();
+        let user = await this.findByPk(id, {transaction: t});
+        if(user)var effect = await user.update(options, {transaction: t});
+        await t.commit();
+        return {effect: effect, result:true};
+    }catch(err){
+        await t.rollback();
+        console.log('[User Model]updateUser error.');
+        return {result: false};
+    }
 };
+
 User.deleteUser = async function(id){
-    let user = await this.findByPk(id);
-    if(user)return user.destroy({force:true});
+    try{
+        let user = await this.findByPk(id);
+        if(user)return user.destroy({force:true});
+    }catch(err){
+        console.log('[User Model]deleteUser error.');
+        return {result: false};
+    }
+
 };
 User.findUserById = function(id){
     return this.findByPk(id);

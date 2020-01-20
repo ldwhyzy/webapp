@@ -35,7 +35,7 @@
             .blog-items li{margin:20px; font-size:16px}
             .blog-class:hover{color:hsl(120, 67%, 50%)!important;font-size:30px;}
 
-            .main-left{padding-bottom:5px;border:solid #dfdfdf 1px;background:#fff}
+            .main-left{padding-bottom:5px;border:solid #dfdfdf 1px;background:#fff;min-height: 300px;}
             .main-right{border:solid #dfdfdf 1px;background:#fff}
 
             .auth-item{
@@ -52,12 +52,9 @@
             /* #login-button{margin:0 auto;} */
 
             .col-md-3{position:relative;height:500px;}
-            .blog-theme-area{position:absolute;margin-top:30%;margin-right:10px;}
-            .blog-theme button{margin:3px;}
             /* .footer{margin-top:50px;} */
         </style>
         <script type="text/javascript">
-
             /*
             function Encrypt(word, key, iv){
                         srcs = CryptoJS.enc.Utf8.parse(word);
@@ -68,7 +65,7 @@
             function pwHash(passwd){
                 return CryptoJS.SHA1(passwd).toString(CryptoJS.enc.Hex);
                 //return passwd;
-;            }
+            }
             
             function emailValidate(email){
                 var EmailPattern = /^[a-zA-Z0-9\.\-\_]+\@[a-zA-Z0-9\-\_]+(\.[a-zA-Z0-9\-\_]+){1,4}$/;
@@ -124,34 +121,25 @@
            
             var user = null;
            $(function(){
-            user = ldzyUtil.userCheck();
-            var vm = new Vue({
-                el:"#userControl",
-                data:{
-                    user: user&&user.username?user:null,
-                }    
-            });
-            // $("[data-toggle='popover']").popover();
-            $.getJSON('/api/blog/themes', function(data, status){
-                var buttonsHtml = ""; 
-                for(var i=0;i<data.themes.length;i++){
-                    buttonsHtml += "<button type=\"button\" class=\"btn btn-primary btn-blog-theme\" data-id=\""+data.themes[i].id+"\">"+data.themes[i].str+"</button>";
-                }
-                $(".blog-theme").html(buttonsHtml);
-                $(".btn-blog-theme").click(function(event){
-                    var themeid = $(event.target).attr("data-id");
-                    var themestr = $(event.target).html();
-                    var editWindow = window.open(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
+                user = ldzyUtil.userCheck();
+                var vm = new Vue({
+                    el:"#userControl",
+                    data:{
+                        user: user&&user.username?user:null,
+                    }    
                 });
-            });
-            
-            $(".login-panel").click(function(e){
-                    e.stopPropagation();
+                // $("[data-toggle='popover']").popover();
+                $(".login-panel").click(function(e){
+                        e.stopPropagation();
                 });
-        });
 
-            </script>
-        
+                $(".enter-submit-input").on("keyup", function(event){
+                    if(event.keyCode=="13")
+                        $(event.target).parents(".enter-submit-block").find(".enter-submit-btn").trigger("click");
+                });
+            });
+
+        </script>
         {% block beforehead %}<!-- before head  -->{% endblock %}
 	</head>
 	<body>
@@ -170,9 +158,9 @@
                     </div>
                     <div class="collapse navbar-collapse" id="navbar-index">
                         <ul class="nav navbar-nav blog-items">
-                            <li><a class="blog-class" href="/">一本正经</a></li>
-                            <li><a class="blog-class" href="/thought">思想碰撞</a></li>
-                            <li><a class="blog-class" href="/blog/fun">杂趣</a></li>
+                            <li><a class="blog-class {% if study %}current-theme{% endif %}" href="/blog/study">一本正经</a></li>
+                            <li><a class="blog-class {% if thought %}current-theme{% endif %}" href="/thought">思想碰撞</a></li>
+                            <li><a class="blog-class {% if fun %}current-theme{% endif %}" href="/blog/fun">杂记</a></li>
                         </ul>
                         <ul class="nav navbar-nav navbar-right" id="userControl">
                             <!--
@@ -221,7 +209,7 @@
                                             <span class="glyphicon glyphicon-log-in"></span> 登录
                                             <span class="caret"></span>
                                         </button>
-                                        <ul class="dropdown-menu login-panel">
+                                        <ul class="dropdown-menu login-panel enter-submit-block">
                                             <!-- <li class="form-group">
                                                 <label for="userName">用户名</label>
                                                 <input type="text" class="form-control" name="username" id="userName"/>
@@ -234,13 +222,13 @@
                                             </li>   -->
                                             <li>
                                                 <label for="userName">用户名</label>
-                                                <input type="text" class="login-li" name="username" id="userName"/>
+                                                <input type="text" class="login-li enter-submit-input" name="username" id="userName"/>
                                             </li>    
                                             <li>
                                                 <label for="passWord">密码</label>
-                                                <input type="password" class="login-li" name="password" id="passWord"/></li>    
+                                                <input type="password" class="login-li enter-submit-input" name="password" id="passWord"/></li>    
                                             <li id="login-line">
-                                                <button id="login-button" onclick="loginHandler()">登录</button>
+                                                <button class="enter-submit-btn" id="login-button" onclick="loginHandler()">登录</button>
                                             </li>  
                                         </ul>
                                     </div>    

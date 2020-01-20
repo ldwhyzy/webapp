@@ -1,4 +1,4 @@
-{% extends "head_page.html" %}
+{% extends "base_head.html" %}
 {% block title %}{{title}}{% endblock %}
 {% block beforehead %}
 <script src="static/js/contextmenu/jquery.contextMenu.js"></script>
@@ -205,7 +205,13 @@ $(function(){
                 } ,
          icon: "edit"},
             "block": {name: "屏蔽", icon: "cut"},
-            "profile": {name: "查看个人中心", icon: "copy"},
+            "profile": {name: "查看个人中心",
+                        callback: function(itemKey, opt, e){
+                            let userli = opt.$trigger.find("span");
+                            window.open('/user/space/'+userli.attr("data-id"), );
+                            return true;
+                        },
+                        icon: "copy"},
             // "paste": {name: "Paste", icon: "paste"},
             // "delete": {name: "Delete", icon: "delete"},
             "sep1": "---------",
@@ -222,148 +228,146 @@ $(function(){
  }); 
 </script>
 {% endblock %}
-{% block contentleft %}
-<div class="row ">
-    <img class="img-responsive" src="/static/images/matearial/sparrows.jpg">
-    <h4 class="page-header my-margin">聊天室</h4>
-   <div class="col-md-9 message-frame">
-        <div class="panel panel-default chat-room">
-            <div class="panel-heading" style="color: #e9059d;">大家来聊聊工程什么时候能完工吧</div>
-            <div class="panel-body chat-room-panel">
-                    <!-- <div v-for="reply in comment.subComment" class="media reply">
+{% block contentmain %}
+    <div class="col-md-9 main-left">
+        <div class="row ">
+            <img class="img-responsive" src="/static/images/matearial/sparrows.jpg">
+            <h4 class="page-header my-margin">聊天室</h4>
+           <div class="col-md-9 message-frame">
+                <div class="panel panel-default chat-room">
+                    <div class="panel-heading" style="color: #e9059d;">大家来聊聊工程什么时候能完工吧</div>
+                    <div class="panel-body chat-room-panel">
+                            <!-- <div v-for="reply in comment.subComment" class="media reply">
+                                    <div class="media-left">
+                                        <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                                    </div>
+                                    <div class="media-body sub-comment">
+                                        <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                        <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
+                                        <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                                    </div>
+                                </div> -->
+        
+                        <!-- <div class="media reply">
                             <div class="media-left">
-                                <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                                <a href="#"><img  class="img-circle" src="image_origin.png" onerror="this.src=placeholder.getData({size:'30x30', text: 'Image 404'})"></a>
                             </div>
                             <div class="media-body sub-comment">
-                                <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
-                                <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
-                                <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
-                            </div>
-                        </div> -->
-
-                <!-- <div class="media reply">
-                    <div class="media-left">
-                        <a href="#"><img  class="img-circle" src="image_origin.png" onerror="this.src=placeholder.getData({size:'30x30', text: 'Image 404'})"></a>
-                    </div>
-                    <div class="media-body sub-comment">
-                        <p class="username-css" v-bind:data-userid="#" style="color:rgb(238, 187, 22)">大明</p>
-                        <p>大家好</p>
-                    </div>
-                </div>
-                <P>用户2： 等会我给大家整个</P> -->
-
-                <div id="message-list">
-                    <div style="margin-bottom:10px;" v-for="msg in messages">
-                        <div v-if="msg.type === 'join' || msg.type === 'left'">
-                            <div class="media-left">
-                                <img class="media-object" style="width:15px; height:15px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
-                            </div>
-                            <div class="media-body">
-                                <h4 class="media-heading" style="color:chartreuse" v-text="'[系统消息] '+msg.data"></h4>
+                                <p class="username-css" v-bind:data-userid="#" style="color:rgb(238, 187, 22)">大明</p>
+                                <p>大家好</p>
                             </div>
                         </div>
-                        <div v-if="msg.type === 'publicchat'||msg.type === 'privatechat'">
-                            <div class="media">
-                                <div class="media-left">
-                                    <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
-                                </div>
-                                <div class="media-body">
-                                    <!-- <h4 class="media-heading msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name"></h4> -->
-                                    <h4 class="media-heading"><a class="msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name" href="#"></a></h4>
-                                    <span style="color: rgb(31, 16, 245);" v-if="msg.type === 'privatechat'" v-text="'[密信]'+msg.user.name+' @'+msg.sendto.name+': '"></span>
-                                    <span style="color: rgb(84, 18, 238);" v-if="msg.type === 'publicchat'&&msg.sendto" v-text="'@'+msg.sendto.name+': '"></span>
-                                    <!-- <span style="color: brown;" v-else v-text="msg.user.name+' @'+msg.sendto.name+': '"></span> -->
-                                    <span v-text="msg.data"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+                        <P>用户2： 等会我给大家整个</P> -->
         
-        <div class="input-group" id="message-line">
-            {% if not __user__ %}
-            <div class="baffle-wrap">
-                请先
-                <button type="button" class="btn btn-primary button-spacing blog-modal" data-toggle="modal" data-target="#myModal">登录</button>
-                来交流
-            </div>
-            {% endif %}
-            <input type="text" class="form-control" placeholder="来和大家交流吧！" id="my-message">
-            <span class="input-group-btn">
-                <button class="btn btn-primary" id="sendmessage" type="button">发送</button>
-            </span>
-        </div>
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content col-md-offset-4">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">登录</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div id="login-block">
-                                <form>
-                                    <label for="#name">用户名</label>
-                                    <input type="text" class="form-control" id="username">
-                                    <label for="#passwd">密码</label>
-                                    <input type="password" class="form-control" id="passwd">
-                                </form>
+                        <div id="message-list">
+                            <div style="margin-bottom:10px;" v-for="msg in messages">
+                                <div v-if="msg.type === 'join' || msg.type === 'left'">
+                                    <div class="media-left">
+                                        <img class="media-object" style="width:15px; height:15px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
+                                    </div>
+                                    <div class="media-body">
+                                        <h4 class="media-heading" style="color:chartreuse" v-text="'[系统消息] '+msg.data"></h4>
+                                    </div>
+                                </div>
+                                <div v-if="msg.type === 'publicchat'||msg.type === 'privatechat'">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + msg.user.image + '.png'">
+                                        </div>
+                                        <div class="media-body">
+                                            <!-- <h4 class="media-heading msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name"></h4> -->
+                                            <h4 class="media-heading"><a class="msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name" href="#"></a></h4>
+                                            <span style="color: rgb(31, 16, 245);" v-if="msg.type === 'privatechat'" v-text="'[密信]'+msg.user.name+' @'+msg.sendto.name+': '"></span>
+                                            <span style="color: rgb(84, 18, 238);" v-if="msg.type === 'publicchat'&&msg.sendto" v-text="'@'+msg.sendto.name+': '"></span>
+                                            <!-- <span style="color: brown;" v-else v-text="msg.user.name+' @'+msg.sendto.name+': '"></span> -->
+                                            <span v-text="msg.data"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
-                            <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
-                        </div>
+        
                     </div>
                 </div>
-        </div>
-   </div>
-   <div class="col-md-3 users-list-frame">
-        <div class="panel panel-default" id="user-list">
-            <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> 列表 (<span v-text="users.length"></span>)</div>
-            <div class="panel-body">
-                    <div style="height:400px; overflow-x:hidden; overflow-y:auto;">
-                        <div id="user-list-panel">
-                            <div class="media user-li" v-for="user in users">
-                                <div class="media-left">
-                                    <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + user.image + '.png'">
+                
+                <div class="input-group" id="message-line">
+                    {% if not __user__ %}
+                    <div class="baffle-wrap">
+                        请先
+                        <button type="button" class="btn btn-primary button-spacing blog-modal" data-toggle="modal" data-target="#myModal">登录</button>
+                        来交流
+                    </div>
+                    {% endif %}
+                    <input type="text" class="form-control" placeholder="来和大家交流吧！" id="my-message">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" id="sendmessage" type="button">发送</button>
+                    </span>
+                </div>
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content col-md-offset-4">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="myModalLabel">登录</h4>
                                 </div>
-                                <div class="media-body">
-                                    <a href="#"><span style="font-size:15px;" class="media-heading" v-text="user.name" v-bind:data-id="user.id"></span></a>
+                                <div class="modal-body">
+                                    <div id="login-block">
+                                        <form>
+                                            <label for="#name">用户名</label>
+                                            <input type="text" class="form-control" id="username">
+                                            <label for="#passwd">密码</label>
+                                            <input type="password" class="form-control" id="passwd">
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
+                                    <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
                                 </div>
                             </div>
                         </div>
+                </div>
+           </div>
+           <div class="col-md-3 users-list-frame">
+                <div class="panel panel-default" id="user-list">
+                    <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> 列表 (<span v-text="users.length"></span>)</div>
+                    <div class="panel-body">
+                            <div style="height:400px; overflow-x:hidden; overflow-y:auto;">
+                                <div id="user-list-panel">
+                                    <div class="media user-li" v-for="user in users">
+                                        <div class="media-left">
+                                            <img class="media-object" style="width:20px; height:20px;" v-bind:src="'/static/images/' + user.image + '.png'">
+                                        </div>
+                                        <div class="media-body">
+                                            <a href="#"><span style="font-size:15px;" class="media-heading" v-text="user.name" v-bind:data-id="user.id"></span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
-{% block contentright %}
-<div style="margin-top:20px;">
-    <blockquote>
-        <p>&emsp;&emsp;与人交谈一次，往往比多年闭门劳作更能启发心智。思想必定是在与人交往中产生，而在孤独中进行加工和表达。</p>
-        <footer class="text-right"><cite title="Source Title">列夫·托尔斯泰</cite></footer>
-    </blockquote>
-</div>
-<!-- <div>
-    <h4><a href="#">往期聊天主题历史</a></h4>
-    <p>往期聊天主题历史1</p>
-    <p>往期聊天主题历史2</p>
-    <p>往期聊天主题历史3</p>
-</div> -->
-<div class="panel panel-default chats-list-panel">
-    <div class="panel-heading">往期聊天记录 <a class="pull-right" href="/chat/history">查看更多</a></div>
-    <div class="panel-body">
-        <ul>
-            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
-            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
-            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
-            <li><a href="#"><i class="fa fa-angle-right"></i>&nbsp;往期聊天主题历史1</a></li>
-        </ul>
+    <div class="col-md-3 main-right">
+        <div style="margin-top:20px;">
+            <blockquote>
+                <p>&emsp;&emsp;与人交谈一次，往往比多年闭门劳作更能启发心智。思想必定是在与人交往中产生，而在孤独中进行加工和表达。</p>
+                <footer class="text-right"><cite title="Source Title">列夫·托尔斯泰</cite></footer>
+            </blockquote>
+        </div>
+        <div class="panel panel-default chats-list-panel">
+            <div class="panel-heading">往期聊天记录 <a class="pull-right" href="/chat/history">查看更多</a></div>
+            <div class="panel-body">
+                <ul>
+                    {% for chat in chats %}
+                    <li><a href="/chat/theme/{{chat.id}}"><i class="fa fa-angle-right"></i>&nbsp;{{chat.title|truncate(15, false, ' ...')}}</a></li>
+                    {% else %}
+                    <li>大家来交流呀</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
-</div>
 {% endblock %}
+

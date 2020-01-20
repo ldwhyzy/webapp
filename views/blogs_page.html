@@ -1,0 +1,107 @@
+{% extends "base_head.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block beforehead %}
+<style type="text/css">
+.public-time{font-size:10px;}
+.blog-theme-area{position:absolute;margin-top:30%;margin-right:10px;}
+.blog-theme button{margin:3px;}
+</style>
+<script type="text/javascript">
+$(function(){
+    var currentPage = 1;
+    var blogRow = 10;
+    var firstClass = ldzyUtil.getCurrentTheme()=='study'?1:2;  
+    var offsetData = {blogRow:blogRow, currentPage:currentPage};
+            
+    $.post("/api/blog/blogs_count", {firstClass:firstClass}, function(data, status){ //获取study类文章总6
+        if(typeof data.blogsCount !=='number')data.blogsCount = parseInt(data.blogsCount);
+        totalPages = Math.ceil(data.blogsCount/blogRow)||1;
+        // totalPages =20;
+        $('#jq-pagi').jqPaginator({//分页设置
+            totalPages: totalPages,
+            visiblePages: 8,
+            currentPage: 1,
+            first: '<li class="first"><a href="javascript:void(0);">第一页</a></li>',
+            prev: '<li class="prev"><a href="javascript:void(0);">前一页</a></li>',
+            next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
+            last: '<li class="last"><a href="javascript:void(0);">末尾页</a></li>',
+            page: '<li class="page"><a href="javascript:void(0);">{% raw %}{{page}}{% endraw %}</a></li>',//防止后端jinja2解析导致填为空
+
+            onPageChange: function (num, type) {
+                // $('.text-test').html('当前第' + num + '页');
+                offsetData.currentPage = num;
+                currentPage = num;
+                if(type=="change"){
+                    $.post(`/api/blog/page/${currentPage}`, {firstClass:firstClass, offsetData:offsetData}, function(data, status){   
+                        //this.currentPage = num;
+                        blogs_panel.blogs = data.blogs;
+                        
+                    }); 
+                }
+            }  
+        }); 
+    }); 
+
+    // $.getJSON('/api/blog/themes', function(data, status){
+    //     var buttonsHtml = ""; 
+    //     for(var i=0;i<data.themes.length;i++){
+    //         buttonsHtml += "<button type=\"button\" class=\"btn btn-primary btn-blog-theme\" data-id=\""+data.themes[i].id+"\">"+data.themes[i].str+"</button>";
+    //     }
+    //     $(".blog-theme").html(buttonsHtml);
+    //     $(".btn-blog-theme").click(function(event){
+    //         var themeid = $(event.target).attr("data-id");
+    //         var themestr = $(event.target).html();
+    //         var editWindow = window.open(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
+    //     });
+    // });
+    $("#blog-search").on("click", function(event){
+        //var path = $(event.target).attr("data-path");
+        var searchstr = $("#blog-search-content").val().trim();
+        alert(searchstr);
+        location.assign(`/blog/blogs/search?keyword=${themestr}`);
+    });
+
+    $(".btn-blog-theme").click(function(event){
+        var themeid = $(event.target).attr("data-id");
+        var themestr = $(event.target).html();
+        location.assign(`/blog/blogs/theme/${themeid}?keyword=${themestr}`);
+    });
+});	
+</script>
+{% endblock %} 
+{% block contentmain %}
+<div class="col-md-8 main-left">
+    <div id="blogs_panel">
+        {% for blog in blogs %}
+            <article>
+                <h4 class="page-header"><a href="'/blog/'+{{ blog.id }}">{{ blog.title }}</a></h4> 
+                <p class="text-muted public-time" data-publish="{{ blog.created_at }}">发表于{{ blog.created_at | getPublishTime }}</p>
+                <p>{{ blog.summary|truncate(200, false, ' ...') }}</p>
+                <p><a href="'/blog/'+{{ blog.id }}">阅读全文</a></p>
+                <hr>
+            </article>
+        {% else %}
+            <h4 class="page-header">不管是学习还是兴趣，快来更新博客吧！</h4> 
+        {% endfor %}    
+    </div>
+    <div class="pagination" id="jq-pagi"></div>
+</div>
+<div class="col-md-3 col-md-offset-1 main-right">
+    <div class="blog-theme-area">
+        <div class="input-group enter-submit-block" style="margin-bottom:30px;">
+            <input type="text" class="form-control enter-submit-input" placeholder="博客搜索" id="blog-search-content">
+            <span class="input-group-btn">
+                <button class="btn btn-primary enter-submit-btn" id="blog-search" type="button"><span class="glyphicon glyphicon-search"></span></button>
+            </span>
+        </div>
+        <h4>标签</h4>
+        <div class="blog-theme">
+            {% for blogtheme in blogthemes %}
+                <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{blogtheme.id}}">{{blogtheme.value|truncate(13, false, ' ...')}}</button>
+            {% else %}
+                <p>添加标签，让人眼前一亮吧！</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

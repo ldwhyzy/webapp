@@ -31,6 +31,15 @@ module.exports = {
         selfInfo = ctx.request.body.selfInfo+"re";
         ctx.rest({name: name, email: email, portrait: portrait, selfInfo: selfInfo});
     },
+    'GET /user/message': async (ctx, next) => {
+        var user = ctx.state.user
+        if(user&&user.admin){
+             var userInfo = {}//用户信息汇总，包括USER表，comment表，blog表信息 
+             ctx.render("message.html", {title:'站内私信'});
+        }else{
+            ctx.response.redirect('/');
+        }
+    },
     'GET /user/manage': async (ctx, next) => {
         var user = ctx.state.user
         if(user&&user.admin){

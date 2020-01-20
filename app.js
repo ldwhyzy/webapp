@@ -17,8 +17,10 @@ if(!isProduction){  // 客户端请求的文件路径为以/static/开头，则�
 }
 
 templating('views', {   
-    noCache: !isProduction,
-    watch: !isProduction
+    // noCache: !isProduction,
+     noCache: true,
+    // watch: !isProduction
+     watch: true
 }, app);
 
 //EL表达式语言，反引号才能${ctx.request.method}求值，单双引号不求值。
