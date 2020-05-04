@@ -1,10 +1,14 @@
 const db = require('../db');
+//const User = require('./User.js');
 
 var Blog = db.defineModel('blogs', {
     user_id: db.STRING(50),
     title: db.STRING(50),
     content: db.TEXT('medium'),
-    add_Class: db.STRING(50),
+    add_Class: {
+        type: db.STRING(50),
+        allowNull: true
+    },
     first_class: db.INTEGER,
     second_class: db.INTEGER,
     publish: db.INTEGER,
@@ -19,8 +23,14 @@ Blog.createBlog = async function(blog){
     blogData.first_class = blog.firstClass;
     blogData.second_class = blog.secondClass;
     blogData.publish = blog.publish;
-
-    return await this.create(blogData);//将findOrCreate功能拆开 await才能使用                                  
+    try{
+        var blog = await this.create(blogData);
+        return blog; 
+    }catch(err){
+        console.log(err);
+        return false;
+    }
+                                  
 };
 
 Blog.updateBlog = async function(id, values){
@@ -42,6 +52,6 @@ Blog.countAllBlog = function(options={}){
     return this.count({col:"id", where:options});
 };
 Blog.offsetFindBlog = function(rowCount, currentPage, options={}){
-    return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount});
+    return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount, raw: true});
 };
 module.exports = Blog;

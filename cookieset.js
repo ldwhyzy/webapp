@@ -65,5 +65,29 @@ module.exports = {
                 ctx.state.aid = null;
                 console.log('cookies is removed;'); 
         };
+    },
+
+    documentAuthenticateCheck: function(adminCode){
+        return async (ctx, next)=>{  
+            if(!ctx.state.user){
+                ctx.response.redirect('/');
+            }
+            else if(ctx.state.user.admin<adminCode){
+                ctx.response.redirect('/403');
+            }
+        };
+    },
+
+    xhrAuthenticateCheck: function(adminCode){
+        return (ctx, next)=>{
+            if(!ctx.state.user){
+                console.log('[xhrAuthenticateCheck] 请先登录');
+                ctx.throw(400, '请先登录');
+            }
+            else if(ctx.state.user.admin<adminCode){
+                console.log('[xhrAuthenticateCheck] 权限不足');
+                ctx.throw(404, '资源不存在');
+            }
+        };
     }
 }    

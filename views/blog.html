@@ -1,9 +1,11 @@
-{% extends "base.html" %}
+{% extends "base_head.html" %}
 {% block title %}{{title}}{% endblock %}
 {% block beforehead %}
 <style type="text/css">
 .blog-theme-area{position:absolute;margin-top:50%;}
 .blog-theme button{margin:3px;}
+.blog-body{min-height:400px;}
+
 .comments{border:#d9d9d9 1px solid;padding:10px;}
 #comment_title{margin-bottom: 5px;}
 .comment-time{font-size:10px;color:gray;}
@@ -134,85 +136,89 @@ $(function(){
  }); 
 </script>
 {% endblock %}
-{% block contentleft %}
-    <article>
-    <h3 class="page-header">{{blog.title}}</h3>
-    <p>发表于{{blog.created_at}}</p>
-    <p>{{blog.content}}</p>
-    <hr>
-    </article>
-    <div class="user_comment" id="comments_panel" v-cloak>
-        <h5>评论</h5>
-        {% raw %}
-            <div v-for="comment in comments" class="media comments">
-                <div class="media-left">
-                    <a href="#">
-                        <!-- <img class="media-object" data-src="holder.js/50x50" alt="用户头像"> -->
-                        <img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})">
-                    </a>
-                </div>
-                <div class="media-body main-floor" v-bind:data-my-floor="comment.mainComment.floor_no">
-                   <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
-                   <p class="username-css" v-bind:data-userid="comment.mainComment.self.id">{{comment.mainComment.self.name}}</p>
-                   <p>{{comment.mainComment.content}}</p>
-                   <p><span class="comment-time">{{comment.mainComment.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
-                   <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
-
-                    <template v-if="comment.subComment">
-                        <div v-for="reply in comment.subComment" class="media reply">
-                            <div class="media-left">
-                                <!-- <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a> -->
-                                <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
-                            </div>
-                            <div class="media-body sub-comment">
-                                <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
-                                <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
-                                <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
-                            </div>
-                        </div>
-                    </template>  
-                </div>
-            </div>
-        {% endraw %}
-        
-        <div class="comment-edit main-comment">
-            <form action="/api/add_comment" method="post">
-                <div class="form-group bottom-commit">
-                    <template v-if="!user">
-                        <div class="baffle-wrap">
-                            请先
-                            <button type="button" class="btn btn-primary minilogin-modal" data-toggle="modal" data-target="#myModal">登录</button>
-                            发布评论
-                        </div>
-                    </template>
-                    <label for="#comment_title">编辑评论</label>
-                    <!-- <input class="form-control" id="comment_title" placeholder="标题"> -->
-                    <textarea class="form-control" id="textArea_comment" rows="5" placeholder="不吐不快"></textarea>
-                </div>
-                <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit($event)">提交</button>  
-            </form>
+{% block contentmain %}
+    <div class="col-md-9 main-left">
+        <div class="blog-body">
+            <article>
+            <h3 class="page-header">{{blog.title}}</h3>
+            <p>发表于{{blog.created_at}}</p>
+            <p>{{blog.content}}</p>
+            <hr>
+            </article>
         </div>
+        <div class="user_comment" id="comments_panel" v-cloak>
+            <h5>评论</h5>
+            {% raw %}
+                <div v-for="comment in comments" class="media comments">
+                    <div class="media-left">
+                        <a href="#">
+                            <!-- <img class="media-object" data-src="holder.js/50x50" alt="用户头像"> -->
+                            <img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})">
+                        </a>
+                    </div>
+                    <div class="media-body main-floor" v-bind:data-my-floor="comment.mainComment.floor_no">
+                    <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
+                    <p class="username-css" v-bind:data-userid="comment.mainComment.self.id">{{comment.mainComment.self.name}}</p>
+                    <p>{{comment.mainComment.content}}</p>
+                    <p><span class="comment-time">{{comment.mainComment.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                    <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
 
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content col-md-offset-4">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">登录</h4>
+                        <template v-if="comment.subComment">
+                            <div v-for="reply in comment.subComment" class="media reply">
+                                <div class="media-left">
+                                    <!-- <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a> -->
+                                    <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                                </div>
+                                <div class="media-body sub-comment">
+                                    <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                    <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
+                                    <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
+                                </div>
+                            </div>
+                        </template>  
                     </div>
-                    <div class="modal-body">
-                        <div id="login-block">
-                            <form>
-                                <label for="#name">用户名</label>
-                                <input type="text" class="form-control" id="username">
-                                <label for="#passwd">密码</label>
-                                <input type="password" class="form-control" id="passwd">
-                            </form>
+                </div>
+            {% endraw %}
+            
+            <div class="comment-edit main-comment">
+                <form action="/api/add_comment" method="post">
+                    <div class="form-group bottom-commit">
+                        <template v-if="!user">
+                            <div class="baffle-wrap">
+                                请先
+                                <button type="button" class="btn btn-primary minilogin-modal" data-toggle="modal" data-target="#myModal">登录</button>
+                                发布评论
+                            </div>
+                        </template>
+                        <label for="#comment_title">编辑评论</label>
+                        <!-- <input class="form-control" id="comment_title" placeholder="标题"> -->
+                        <textarea class="form-control" id="textArea_comment" rows="5" placeholder="不吐不快"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary commit-btn" v-on:click="commentEdit($event)">提交</button>  
+                </form>
+            </div>
+
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content col-md-offset-4">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">登录</h4>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
-                        <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
+                        <div class="modal-body">
+                            <div id="login-block">
+                                <form>
+                                    <label for="#name">用户名</label>
+                                    <input type="text" class="form-control" id="username">
+                                    <label for="#passwd">密码</label>
+                                    <input type="password" class="form-control" id="passwd">
+                                </form>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- <button type="button" class="btn btn-default" data-dismiss="modal">取消</button> -->
+                            <button type="button" class="btn btn-primary" onclick="miniloginHandler()">登录</button>
+                        </div>
                     </div>
                 </div>
             </div>

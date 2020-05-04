@@ -54,5 +54,11 @@ app.use(restPre.restify(app));
 
 app.use(controller());
 
+app.on('error', err=>{
+    console.log('********************ERROR*******************')
+    console.log(err);
+    console.log('********************ERROR END*******************')
+});
+
 app.listen(3000);
 console.log('app started at port 3000...');

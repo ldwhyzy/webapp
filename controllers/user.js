@@ -4,7 +4,7 @@ module.exports = {
         var userid = ctx.state.user&&ctx.state.user.id;
         if(userid){
              var userInfo = {}//用户信息汇总，包括USER表，comment表，blog表信息 
-             ctx.render("user.html", {userInfo: userInfo, __admin__:ctx.state.user.admin});
+             ctx.render("user.html", {userInfo: userInfo, __admin__:ctx.state.user.admin>5});
         }else{
             ctx.response.redirect('/');
         }
@@ -35,7 +35,7 @@ module.exports = {
         var user = ctx.state.user
         if(user&&user.admin){
              var userInfo = {}//用户信息汇总，包括USER表，comment表，blog表信息 
-             ctx.render("message.html", {title:'站内私信'});
+             ctx.render("message.html", {title:'站内私信', __admin__:user.admin>5});
         }else{
             ctx.response.redirect('/');
         }
@@ -44,7 +44,7 @@ module.exports = {
         var user = ctx.state.user
         if(user&&user.admin){
              var userInfo = {}//用户信息汇总，包括USER表，comment表，blog表信息 
-             ctx.render("manage.html", {userInfo: userInfo, __admin__:user.admin});
+             ctx.render("manage.html", {userInfo: userInfo, __admin__:user.admin>5});
         }else{
             ctx.response.redirect('/');
         }

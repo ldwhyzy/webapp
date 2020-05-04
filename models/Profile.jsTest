@@ -1,0 +1,14 @@
+const db = require('../db');
+
+const Op = db.Op; 
+
+var Profile = db.defineModel('profiles', {  
+    about: {
+        type: db.STRING(200),
+        allowNull: true
+    },
+    last_login: {
+        type: Sequelize.BIGINT,//毫秒数
+        allowNull: false
+    }
+});

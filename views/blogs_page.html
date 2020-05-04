@@ -10,7 +10,7 @@
 $(function(){
     var currentPage = 1;
     var blogRow = 10;
-    var firstClass = ldzyUtil.getCurrentTheme()=='study'?1:2;  
+    var firstClass = ldzyUtil.getCurrentTheme()=='fun'?1:0;  
     var offsetData = {blogRow:blogRow, currentPage:currentPage};
             
     $.post("/api/blog/blogs_count", {firstClass:firstClass}, function(data, status){ //获取study类文章总6
@@ -74,10 +74,10 @@ $(function(){
     <div id="blogs_panel">
         {% for blog in blogs %}
             <article>
-                <h4 class="page-header"><a href="'/blog/'+{{ blog.id }}">{{ blog.title }}</a></h4> 
+                <h4 class="page-header"><a href="/blog/{{blog.id }}">{{ blog.title }}</a></h4> 
                 <p class="text-muted public-time" data-publish="{{ blog.created_at }}">发表于{{ blog.created_at | getPublishTime }}</p>
-                <p>{{ blog.summary|truncate(200, false, ' ...') }}</p>
-                <p><a href="'/blog/'+{{ blog.id }}">阅读全文</a></p>
+                <p>{{ blog.content|truncate(200, false, ' ...') }}</p>
+                <p><a href="/blog/{{ blog.id }}">阅读全文</a></p>
                 <hr>
             </article>
         {% else %}
@@ -97,7 +97,7 @@ $(function(){
         <h4>标签</h4>
         <div class="blog-theme">
             {% for blogtheme in blogthemes %}
-                <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{blogtheme.id}}">{{blogtheme.value|truncate(13, false, ' ...')}}</button>
+                <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{blogtheme.id}}">{{blogtheme.str|truncate(13, false, ' ...')}}</button>
             {% else %}
                 <p>添加标签，让人眼前一亮吧！</p>
             {% endfor %}

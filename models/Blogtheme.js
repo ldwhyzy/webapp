@@ -1,4 +1,5 @@
 const db = require('../db');
+const Op = db.Op; 
 
 var Blogtheme = db.defineModel('blogtheme', {
     theme_class: db.INTEGER,
@@ -6,8 +7,12 @@ var Blogtheme = db.defineModel('blogtheme', {
 });
 
 Blogtheme.createBlogtheme = async function(theme){
-    let blogtheme = {theme_class: themeclass, content:theme.content};
-    return await this.create(blogtheme);//将findOrCreate功能拆开 await才能使用                                  
+    let blogtheme = {theme_class: theme.themeclass||1, content:theme.content};
+    return await this.create(blogtheme, {raw: true});//将findOrCreate功能拆开 await才能使用                                  
+};
+
+Blogtheme.findBlogthemeContent = async function(content){
+    return await this.findOne({where:{content: {[Op.like]: `%${content}%`}}, raw:true});//将findOrCreate功能拆开 await才能使用                                  
 };
 
 Blogtheme.updateBlogtheme = async function(id, values){
@@ -28,6 +33,6 @@ Blogtheme.countAllBlogtheme = function(){
     return this.count({where:{theme_class: 1}, col:"id"});
 };
 Blogtheme.offsetFindBlogtheme = function(rowCount, currentPage, options){
-    return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount});
+    return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount, attributes:['id', ['content', 'str']], raw: true});
 };
 module.exports = Blogtheme;

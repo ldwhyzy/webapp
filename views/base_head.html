@@ -28,12 +28,14 @@
         <script type="text/javascript" src="/static/js/crypto-js.js"></script>
         <script type="text/javascript" src="/static/js/ldzy-util.js"></script>
         <style type="text/css">
+            *{margin:0;padding:0;list-style:none;text-decoration:none;}
             body{background: #efefef /*url(/static/img/backgroud.gif)*/}
             [v-cloak]{display:none;}
             .web-header{height:80px;}
             .navbar-brand img{height:300%;}
             .blog-items li{margin:20px; font-size:16px}
             .blog-class:hover{color:hsl(120, 67%, 50%)!important;font-size:30px;}
+            /* .blog-class:active{color:aqua;} */
 
             .main-left{padding-bottom:5px;border:solid #dfdfdf 1px;background:#fff;min-height: 300px;}
             .main-right{border:solid #dfdfdf 1px;background:#fff}
@@ -55,13 +57,6 @@
             /* .footer{margin-top:50px;} */
         </style>
         <script type="text/javascript">
-            /*
-            function Encrypt(word, key, iv){
-                        srcs = CryptoJS.enc.Utf8.parse(word);
-                        var encrypted = CryptoJS.AES.encrypt(srcs, key, { iv: iv,mode:CryptoJS.mode.CBC,padding: CryptoJS.pad.Pkcs7});
-                        return encrypted.ciphertext.toString().toUpperCase();
-            }*/
-
             function pwHash(passwd){
                 return CryptoJS.SHA1(passwd).toString(CryptoJS.enc.Hex);
                 //return passwd;
@@ -128,7 +123,6 @@
                         user: user&&user.username?user:null,
                     }    
                 });
-                // $("[data-toggle='popover']").popover();
                 $(".login-panel").click(function(e){
                         e.stopPropagation();
                 });
@@ -159,7 +153,7 @@
                     <div class="collapse navbar-collapse" id="navbar-index">
                         <ul class="nav navbar-nav blog-items">
                             <li><a class="blog-class {% if study %}current-theme{% endif %}" href="/blog/study">一本正经</a></li>
-                            <li><a class="blog-class {% if thought %}current-theme{% endif %}" href="/thought">思想碰撞</a></li>
+                            <li><a class="blog-class {% if thoughts %}current-theme{% endif %}" href="/thoughts">思想碰撞</a></li>
                             <li><a class="blog-class {% if fun %}current-theme{% endif %}" href="/blog/fun">杂记</a></li>
                         </ul>
                         <ul class="nav navbar-nav navbar-right" id="userControl">
@@ -248,6 +242,5 @@
                 <p> Copyright &copy; 2018. <span>Powered by node.js · ldstargazer@gmail.com</span></p>
 		    </footer>
         </div>
-    
-	</body>
+    </body>
 </html>

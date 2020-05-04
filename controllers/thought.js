@@ -51,11 +51,12 @@ function transformCommentOptions(optionsData){
 }
 
 module.exports = {
-    'GET /thought': async (ctx, next) => {
+    'GET /thoughts': async (ctx, next) => {
         var user = ctx.state.user;
         ctx.render('thought_page.html', {
             title: '思想碰撞',
             //studies: blog_items
+            thoughts: true,
             __user__:user
         });
     },

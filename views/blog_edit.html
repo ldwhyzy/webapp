@@ -42,8 +42,8 @@
             .class-margin-right{margin-right:50px;margin-bottom:10px;display:inline-block;}
             .fuction-button-line{margin:20px auto; text-align: center;}
             .button-spacing{margin:auto 10px;}
-            .col-md-3{position:relative;height:500px;}
-            .blog-theme-area{position:absolute;margin-top:50%;}
+            .col-md-3{height:600px;}
+            #blog-theme-area{margin-top:10px;}
             .blog-theme button{margin:3px;}
         </style>
         <script type="text/javascript">
@@ -178,13 +178,12 @@
                                     <div class="class-margin-right">
                                         <label for="select_content" class="control-label-my">主题分类 :</label>     
                                         <select class="form-control" id="second-class">
-                                            <!-- <option>Java</option>
-                                            <option>JavaScript</option>
-                                            <option>Python</option>
-                                            <option>C</option> -->
-                                            {% for option in __secondClass__ %}
+                                            <!-- {% for option in __secondClass__ %}
                                             <option value="{{option.id}}">{{option.str}}</option>
-                                            {% endfor %}
+                                            {% endfor %} -->
+                                            <template v-for="option in blogThemes">
+                                                {%raw%}<option :value="option.id">{{option.str}}</option>{%endraw%}
+                                            </template>
                                         </select>
                                     </div>
                                 </div>
@@ -238,22 +237,29 @@
                         </div>
                     </div>
                     <div class="col-md-3 col-md-offset-1 main-right">
-                        <div class="blog-theme-area">
-                            <h4>标签</h4>
-                            <div class="blog-theme">
-                                {% for option in __secondClass__ %}
-                                <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{option.id}}">{{option.str}}</button>
-                                {% endfor  %}
+                        <div id="blog-theme-area">
+                            <div class="blog-themes">
+                                <h4>标签</h4>
+                                <div class="blog-theme">
+                                    <!-- {% for option in __secondClass__ %}
+                                    <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{option.id}}">{{option.str}}</button>
+                                    {% endfor  %} -->
+                                    <template v-for='option in blogThemesArr'>
+                                        {%raw%}<button type="button" class="btn btn-primary btn-blog-theme" :data-id="option.id">{{option.str}}</button>{%endraw%}
+                                    </template>
+                                </div>
                             </div>
-                            <h4>添加标签</h4>
-                            <div class="blog-theme-add col-md-9">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="添加标签">
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-default" type="button">
-                                            <span class="glyphicon glyphicon-ok"></span>
-                                        </button>
-                                    </span>
+                            <div class="blog-theme-add">
+                                <h4>添加标签</h4>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="添加标签" v-model.trim="tag">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" @click="tagCreate" :disabled="isDisable">
+                                                <span class="glyphicon glyphicon-ok"></span>
+                                            </button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -264,5 +270,57 @@
                 <p> Copyright &copy; 2018. <span>Powered by node.js · ldstargazer@gmail.com</span></p>
 		    </footer>
         </div>
-	</body>
+    </body>
+    <script>
+    var eventBus = new Vue();
+
+    var blogThemeOptions = new Vue({
+        el:'#second-class',
+        data: {
+            blogThemes:[{id:1, str:'python'}, {id:2, str:'javascript'}]
+        },
+        mounted:function(){
+            var self = this;
+            eventBus.$on("blogThemesChange", function(blogThemes){
+                self.blogThemes = blogThemes
+            });
+        }
+    });
+    var blogThemes = new Vue({
+        el:"#blog-theme-area",
+        data:{
+            blogThemesArr: [],
+            isDisable: false,
+            tag:null
+        },
+        mounted:function(){
+            $.get('/api/blog/themes', function(data){
+                blogThemes.blogThemesArr = data.themes;
+            });
+        },
+        updated:function(){
+            var self = this;
+            eventBus.$emit("blogThemesChange", self.blogThemesArr);
+        },
+        methods:{
+            tagCreate: function(){
+                if(this.isDisable)return;
+                if(this.tag){
+                    this.tag = this.tag.replace(/\s/gi, '');
+                    if(this.tag && this.tag.length<50){
+                        this.isDisable = true;
+                        $.post('/api/blog/theme_create/', {tag: this.tag}, function(data){
+                            if(data.result=="success"){
+                                blogThemes.blogThemesArr.push(data.blogtheme);
+                            }
+                            blogThemes.tag = null;
+                            blogThemes.isDisable = false;
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    </script>
 </html>
