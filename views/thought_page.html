@@ -111,7 +111,8 @@ $(function(){
     if(user&&user.username){
         $.get('/api/thought/wsauthenticate', function(data){
             var token = data.token;
-            var location = "ws://localhost:3001/ws/chat/?token="+token; 
+            console.log(decodeURIComponent(token));
+            var location = "ws://localhost:3000/ws/chat/?token="+token; 
             var ws = new WebSocket(location);
             ws.onmessage = function(evt) {
                 var data = evt.data; 
@@ -130,12 +131,12 @@ $(function(){
                 }
             };
             ws.onclose = function (evt) {
-                console.log('[closed] ' + evt.code + ' ' + evt.reason);
+                console.log('[closed] ' + evt.code + ' ' + evt.reason+' reason:' +JSON.stringify(evt));
                 var input = $('#my-message').attr({ 'placeholder':'WebSocket disconnected.','disabled':'disabled' });
                 $('#sendmessage').attr('disabled', 'disabled');
             };
             ws.onerror = function (code, msg) {
-                console.log('[ERROR] ' + code + ': ' + msg);
+                console.log('[ERROR] ' + code + ': '+JSON.stringify(code) + msg);
             };
             $("#sendmessage").click(function(){
                 if(!user.userid||!user.username)return;

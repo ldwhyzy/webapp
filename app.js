@@ -1,11 +1,13 @@
 //'use strict';
-const Koa = require('koa');
+const http = require('http');
+;const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 
 const controller = require('./controller');
 const templating = require('./templating');
 const restPre = require('./rest');
 const cookieSet = require('./cookieset');
+const createWebSocketServer = require('./websocket');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -55,10 +57,14 @@ app.use(restPre.restify(app));
 app.use(controller());
 
 app.on('error', err=>{
-    console.log('********************ERROR*******************')
+    console.log('**********************ERROR*********************')
     console.log(err);
     console.log('********************ERROR END*******************')
 });
 
-app.listen(3000);
+
+var server = http.createServer(app.callback());
+createWebSocketServer(server);
+server.listen(3000);
+
 console.log('app started at port 3000...');

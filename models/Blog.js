@@ -1,5 +1,6 @@
 const db = require('../db');
 //const User = require('./User.js');
+const Op = db.Op; 
 
 var Blog = db.defineModel('blogs', {
     user_id: db.STRING(50),
@@ -44,14 +45,26 @@ Blog.deleteBlog = async function(id){
     let blog = await this.findByPk(id);
     if(blog)return blog.destroy({force:true});
 };
+
 Blog.findBlogById = function(id){
-    return this.findByPk(id);
+    return this.findByPk(id, {'raw':true});
 };
 
 Blog.countAllBlog = function(options={}){
     return this.count({col:"id", where:options});
 };
+
+Blog.countSearchBlog = function(blogtheme){
+    return this.count({col:"id", where:{[Op.or]:[{'content':{[Op.regexp]:blogtheme}}, {'title':{[Op.regexp]:blogtheme}}]
+                                       }});
+};
+
 Blog.offsetFindBlog = function(rowCount, currentPage, options={}){
     return this.findAll({where: options, offset: rowCount*(currentPage-1), limit: rowCount, raw: true});
+};
+
+Blog.offsetSearchBlog = function(rowCount, currentPage, blogtheme){
+    return this.findAll({where:{[Op.or]:[{'content':{[Op.regexp]:blogtheme}}, {'title':{[Op.regexp]:blogtheme}}]
+    }, offset: rowCount*(currentPage-1), limit: rowCount, raw: true});
 };
 module.exports = Blog;

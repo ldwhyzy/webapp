@@ -27,7 +27,7 @@ Blogtheme.deleteBlogtheme = async function(id){
     if(blogtheme)return blogtheme.destroy({force:true});
 };
 Blogtheme.findBlogById = function(id){
-    return this.findByPk(id);
+    return this.findByPk(id, {raw:true});
 };
 Blogtheme.countAllBlogtheme = function(){
     return this.count({where:{theme_class: 1}, col:"id"});

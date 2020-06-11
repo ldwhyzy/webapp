@@ -50,25 +50,48 @@ function transformCommentOptions(optionsData){
     return options;
 }
 
+async function getBlogComments(blogid, offset, options){
+    var comments =  new Array();
+    var floorComment = {};
+    var mainComments = await Comment.floorOffsetFindComment(offset.commentRow, offset.currentPage, options);
+    if(mainComments){
+        for(var i=0;i<mainComments.length;i++){
+            floorComment['mainComment'] = mainComments[i];
+            floorComment['subComment'] = await Comment.findReplyComment(blogid, mainComments[i].floor_no);
+            comments.push(JSON.parse(JSON.stringify(floorComment)));
+        }
+    }
+    comments = sqlDataToCommentData(comments);
+    return comments;
+}
+
 module.exports = {
-    'POST /api/comment/page/:currentPage': async (ctx, next) => {
+    'POST /api/comment/page/:currentPage': async (ctx, next) => {  //f
         //var currentPage = parseInt(ctx.params.currentPage);
         var comments =  new Array();
         var floorComment = {};
         var offset = ctx.request.body.offsetData;
-        offset = {blogRow:parseInt(offset.blogRow), currentPage:parseInt(offset.currentPage)};
+        offset = {commentRow:parseInt(offset.commentRow), currentPage:parseInt(offset.currentPage)};
         var blogid = parseInt(ctx.request.body.blogid);
         var options = {blog_id: blogid};
-        var mainComments = await Comment.floorOffsetFindComment(offset.blogRow, offset.currentPage, options);
-        if(mainComments){
-            for(var i=0;i<mainComments.length;i++){
-                floorComment['mainComment'] = mainComments[i];
-                floorComment['subComment'] = await Comment.findReplyComment(blogid, mainComments[i].floor_no);
-                comments.push(JSON.parse(JSON.stringify(floorComment)));
-            }
-        }
-        comments = sqlDataToCommentData(comments);
+        // var mainComments = await Comment.floorOffsetFindComment(offset.commentRow, offset.currentPage, options);
+        // if(mainComments){
+        //     for(var i=0;i<mainComments.length;i++){
+        //         floorComment['mainComment'] = mainComments[i];
+        //         floorComment['subComment'] = await Comment.findReplyComment(blogid, mainComments[i].floor_no);
+        //         comments.push(JSON.parse(JSON.stringify(floorComment)));
+        //     }
+        // }
+        // comments = sqlDataToCommentData(comments);
+        comments = await getBlogComments(blogid, offset, options);
+
         ctx.rest({comments: comments});
+    },
+    'POST /api/comment/comments_count': async (ctx, next) => {  //f
+        var blogid = parseInt(ctx.request.body.blogid);
+        var commentsCount = 0;
+        commentsCount = await Comment.countAllComment({blog_id: blogid, reply_to:null});
+        ctx.rest({commentsCount: commentsCount});
     },
     'GET /comments/:id': async (ctx, next) => {
         // var id = ctx.params.id;

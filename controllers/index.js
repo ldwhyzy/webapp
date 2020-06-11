@@ -16,7 +16,8 @@ module.exports = {
     },
     
     'GET /404': async (ctx, next) => {
-        ctx.render('404.html', {
+        var blogthemes = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});  
+        ctx.render('blogs_page.html', {
             title: '未找到相关页面',
         });
     }

@@ -5,6 +5,8 @@
 .blog-theme-area{position:absolute;margin-top:50%;}
 .blog-theme button{margin:3px;}
 .blog-body{min-height:400px;}
+.tag-line{margin:30px 0px auto;}
+.blog-tag{color:#f14713;border-radius:5px;border:solid 1px ;padding:3px;}
 
 .comments{border:#d9d9d9 1px solid;padding:10px;}
 #comment_title{margin-bottom: 5px;}
@@ -32,10 +34,12 @@
 .commit-btn{margin-top:5px;}
 .bottom-commit{margin-bottom:0px;}
 .media-body-my{padding-bottom:0px;}
+.img-portrait-thumbnail{border:1px solid #7f7f7f;padding:2px; width:50px;height:50px;}
 .form-group{margin-bottom:0px;}
 .baffle-wrap{position:absolute;left:0;top:0;width:100%;height:100%;z-index:12;
              text-align: center;padding:60px;background: #d9d9d9;opacity:0.9;filter:alpha(opacity=90);}
 #myModal{width:100%;}
+.floor-css-web{color:#ff00ff;font-weight:bold;}
 </style>
 <script type="text/javascript">
 /*博客正文页面，显示博客内容和评论，评论编辑功能
@@ -77,11 +81,11 @@ function miniloginHandler(){
         //$(".login-panel").dropdown("toggle"); 
     }       
 }
+var commentRow = 10;
 $(function(){
     var currentPage = 1;
-    var blogRow = 10;
     var blogid = location.pathname.split('/').pop();
-    var offsetData = {blogRow:blogRow, currentPage:currentPage};
+    var offsetData = {commentRow:commentRow, currentPage:currentPage};
     var comments_panel = new Vue({
         el: "#comments_panel",
         data: {
@@ -111,15 +115,16 @@ $(function(){
                 var floor = null;
                 //var rep = $(evt.target);
                 if(!comment.hasClass("main-comment")){
-                    replyTo = comment.parent().find(":first-child").attr("data-userid");
+                    replyTo = comment.parent().find(":first-child>a").attr("data-userid");
                     floor = comment.parentsUntil("div.comments", "div.main-floor").attr("data-my-floor");
                     mainComment = false;
                 }
                 var commentstr = {floor: floor, userId: this.user.userid, content: comstr, blogId: blogid, replyTo:replyTo, mainComment:mainComment, manage:1};
-                alert(JSON.stringify(commentstr));
+                //alert(JSON.stringify(commentstr));
                 $.post("/api/comment/manage", commentstr, function(data, status){
                      //重置VUE
                     if(data.success){
+                        //comments.push(commentstr);//不可用 结构需改进
                         window.location.reload();
                     }
                 });
@@ -133,6 +138,34 @@ $(function(){
             }
         }
     });
+    $.post("/api/comment/comments_count", {blogid:blogid}, function(data, status){ //获取study类文章总6
+        if(typeof data.commentsCount !=='number')data.commentsCount = parseInt(data.commentsCount);
+        totalPages = Math.ceil(data.commentsCount/commentRow)||1;
+        // totalPages =20;
+        $('#jq-pagi').jqPaginator({//分页设置
+            totalPages: totalPages,
+            visiblePages: 8,
+            currentPage: 1,
+            first: '<li class="first"><a href="javascript:void(0);">第一页</a></li>',
+            prev: '<li class="prev"><a href="javascript:void(0);">前一页</a></li>',
+            next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
+            last: '<li class="last"><a href="javascript:void(0);">末尾页</a></li>',
+            page: '<li class="page"><a href="javascript:void(0);">{% raw %}{{page}}{% endraw %}</a></li>',//防止后端jinja2解析导致填为空
+
+            onPageChange: function (num, type) {
+                // $('.text-test').html('当前第' + num + '页');
+                offsetData.currentPage = num;
+                currentPage = num;
+                if(type=="change"){
+                    $.post(`/api/comment/page/${currentPage}`, {blogid:blogid, offsetData:offsetData}, function(data, status){   
+                        //this.currentPage = num;
+                        comments_panel.comments = data.comments;
+                        
+                    }); 
+                }
+            }  
+        }); 
+    }); 
  }); 
 </script>
 {% endblock %}
@@ -143,6 +176,11 @@ $(function(){
             <h3 class="page-header">{{blog.title}}</h3>
             <p>发表于{{blog.created_at}}</p>
             <p>{{blog.content}}</p>
+            <p class="tag-line"><span class="glyphicon glyphicon-tag"></span>
+                {% for tag in blog.tags %}
+                <span class="blog-tag">{{ tag }}</span>
+                {% endfor %}
+            </p>    
             <hr>
             </article>
         </div>
@@ -151,14 +189,14 @@ $(function(){
             {% raw %}
                 <div v-for="comment in comments" class="media comments">
                     <div class="media-left">
-                        <a href="#">
+                        <a :href="'/user/space/'+comment.mainComment.self.id" target="_blank">
                             <!-- <img class="media-object" data-src="holder.js/50x50" alt="用户头像"> -->
-                            <img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})">
+                            <img :src="comment.mainComment.self.portrait?comment.mainComment.self.portrait:'/static/images/user_portrait/yuri_PR.png'" class="img-circle img-portrait-thumbnail" onerror="this.src='/static/images/user_portrait/yuri_PR.png'">
                         </a>
                     </div>
                     <div class="media-body main-floor" v-bind:data-my-floor="comment.mainComment.floor_no">
                     <!-- <h6 class="media-heading">{{comment.title}}</h6> -->
-                    <p class="username-css" v-bind:data-userid="comment.mainComment.self.id">{{comment.mainComment.self.name}}</p>
+                    <p><a class="username-css" :href="'/user/space/'+comment.mainComment.self.id" target="_blank" v-bind:data-userid="comment.mainComment.self.id">{{comment.mainComment.self.name}}</a><span class="pull-right floor-css-web">#{{comment.mainComment.floor_no}}</span></p>
                     <p>{{comment.mainComment.content}}</p>
                     <p><span class="comment-time">{{comment.mainComment.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                     <!-- <p class="bottom-ph"><a href="#">回复</a></p> -->
@@ -167,10 +205,11 @@ $(function(){
                             <div v-for="reply in comment.subComment" class="media reply">
                                 <div class="media-left">
                                     <!-- <a href="#"><img class="media-object" data-src="holder.js/30x30" alt="用户头像"></a> -->
-                                    <a href="#"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a>
+                                    <!-- <a :href="'/user/space/'+reply.self.id" target="_blank"><img src="image_origin.png" onerror="this.src=placeholder.getData({size:'50x50', text: 'Image 404'})"></a> -->
+                                    <a :href="'/user/space/'+reply.self.id" target="_blank"><img :src="reply.self.portrait?reply.self.portrait:'/static/images/user_portrait/yuri_PR.png'" class="img-circle img-portrait-thumbnail" onerror="this.src='/static/images/user_portrait/yuri_PR.png'"></a>
                                 </div>
                                 <div class="media-body sub-comment">
-                                    <p class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</p>
+                                    <p><a :href="'/user/space/'+reply.self.id" target="_blank" class="username-css" v-bind:data-userid="reply.self.id">{{reply.self.name}}</a></p>
                                     <p><span v-if="reply.reply" class="reply-icon">@{{reply.reply.name}}: </span><span>{{reply.content}}</span></p>
                                     <p><span class="comment-time">{{reply.created_at}}</span><span class="comment-reply"><a href="#" @click.prevent="insertReply($event)">回复</a></span></p>
                                 </div>
@@ -179,7 +218,7 @@ $(function(){
                     </div>
                 </div>
             {% endraw %}
-            
+            <div class="pagination" id="jq-pagi"></div>
             <div class="comment-edit main-comment">
                 <form action="/api/add_comment" method="post">
                     <div class="form-group bottom-commit">
@@ -223,5 +262,7 @@ $(function(){
                 </div>
             </div>
         </div>
-    </div>   
+    </div> 
+    <script>
+    </script>  
 {% endblock %}

@@ -1,6 +1,8 @@
 const Blog = require('../models/Blog');
 const Blogtheme = require('../models/Blogtheme');
 const ADMIN_CODE = require('../config').ADMIN_CODE;
+const BLOG_ROW = require('../config').BLOG_ROW;
+
 const xhrAuthenticateCheck = require('../cookieset').xhrAuthenticateCheck;
 
 // var blogs = [{id:1, title:'第一篇技术博客', created_at:200001,status:'发布'},
@@ -35,6 +37,7 @@ function onesqlDataToblogData(sqlData, simple=true){
         title: sqlData.title, 
         content: sqlData.content, 
         created_at: new Date(sqlData.updatedAt).toLocaleString('chinese',{hour12:false}),
+        //tag: tag,
         // status: sqlData.publish,
     }
     // if(simple){
@@ -62,61 +65,150 @@ function clientBlogDataCheck(blog, user){
     return blogData;
 }
 
-function ctxurlparse(urlstr){
+function ctxurlparse(querystr){
     //sample /blog/blogs/theme/4?keyword=人工智能
-    var keywordstr = urlstr.split('?')[1];
-    var keywordarr = keywordstr.split('&');
+    //var keywordstr = urlstr.split('?')[1];
+    var keywordarr = decodeURIComponent(querystr).split('&');
     var keyword = {};
     for(var i=0;i<keywordarr.length;i++){
         var str = keywordarr[i].split('=');
-        keyword[str[0]] = decodeURIComponent(str[1]);
+        //keyword[str[0]] = decodeURIComponent(str[1]);
+        keyword[str[0]] = str[1];
     }
     return keyword;
 }
 
+function paramsIntCheck(para, ctx, redirect=true){
+    var num = parseInt(para);
+    if(isNaN(num)){
+        if(redirect)ctx.response.redirect('/404');
+        return {result:false};
+    }
+    return {result:true, num:num};
+}
+
+function searchKeywordParse(keyword){
+    keyword = keyword.trim();
+    if(!keyword)return;
+    var k = keyword.split(' ');
+    var word = k[0];
+    for(var i=1;i<k.length;i++){
+        if(k[i])word = word+'|'+k[i];
+    }
+    return word;    
+}
 
 
 module.exports = {
-    'GET /blog/blogs/theme/:id': async (ctx, next) => {
-            var userid = ctx.state.user&&ctx.state.user.id;
-            var themeid = parseInt(ctx.params.id);
+    'GET /blog/theme/:id': async (ctx, next) => {   //f
+            var paraParse = paramsIntCheck(ctx.params.id, ctx);
+            if(!paraParse.result)return;
+            var themeid = paraParse.num;
             console.log('[GET /blog/blogs/theme/:id] '+themeid);
-            var keywords = ctxurlparse(ctx.url);
+            //var keywords = ctxurlparse(ctx.url);
+            var keywords = ctxurlparse(ctx.querystring);
+            var page = keywords.page||1;
             console.log('[GET /blog/blogs/theme/:id] '+JSON.stringify(keywords));
-            ctx.render('blog_theme.html', {
+            var blogs = await Blog.offsetFindBlog(BLOG_ROW, parseInt(page), {second_class: themeid});
+            var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+
+            ctx.render('blogs_page.html', {
                 title: keywords.keyword+' | 个人博客',
+                blogs: blogs,
+                blogthemes: secondClasses
             });
     },
-    'GET /blog/study': async (ctx, next) => {
+    'GET /blog/search': async (ctx, next) => {
+        var keywords = ctxurlparse(ctx.querystring);
+        var page = keywords.page||1;
+        console.log('--------------------------:'+JSON.stringify(keywords));
+        var keyword = searchKeywordParse(keywords.keyword);
+        if(!keyword)return;
+        var blogs = await Blog.offsetSearchBlog(BLOG_ROW, parseInt(page), keyword);
+        var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+        ctx.render('blogs_page.html', {
+            title: ctx.querystring+' | 个人博客',
+            blogs: blogs,
+            blogthemes: secondClasses
+        });
+    },
+    'GET /blog/study': async (ctx, next) => { //f
         var title = '学习';
-        var blogs = {};    
+        var keywords = ctxurlparse(ctx.querystring);
+        var page = keywords.page||1;
+        var blogs = await Blog.offsetFindBlog(BLOG_ROW, parseInt(page), {first_class:0});
+        var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
         ctx.render('blogs_page.html', {
             study: true,
             title: title+' | 个人博客',
             blogs: blogs,
+            blogthemes: secondClasses
         });
-},
-    'GET /blog/fun': async (ctx, next) => {
+    },
+    // 'GET /blog/study/page/:id': async (ctx, next) => { //f
+    //     var title = '学习';
+    //     var paraParse = paramsIntCheck(ctx.params.id, ctx);
+    //     if(!paraParse.result)return;
+    //     var blogs = await Blog.offsetFindBlog(BLOG_ROW, paraParse.num, {first_class:0});
+    //     var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+    //     ctx.render('blogs_page.html', {
+    //         study: true,
+    //         title: title+' | 个人博客',
+    //         blogs: blogs,
+    //         blogthemes: secondClasses
+    //     });
+    // },
+    'GET /blog/fun': async (ctx, next) => {//f
             var title = '杂趣';
-            var blogs = {};     
+            var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+            var blogs = await Blog.offsetFindBlog(BLOG_ROW, 1, {first_class:1});   
             ctx.render('blogs_page.html', {
                 fun: true,
                 title: title+' | 个人博客',
-                blogs: blogs
+                blogs: blogs,
+                blogthemes: secondClasses
             });
     },
-    'GET /blog/:id': async (ctx, next) => {
+    // 'GET /blog/fun/page/:id': async (ctx, next) => {//f
+    //     var title = '杂趣';
+    //     var paraParse = paramsIntCheck(ctx.params.id, ctx);
+    //     if(!paraParse.result)return;
+    //     var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+    //     var blogs = await Blog.offsetFindBlog(BLOG_ROW, paraParse.num, {first_class:1});   
+    //     ctx.render('blogs_page.html', {
+    //         fun: true,
+    //         title: title+' | 个人博客',
+    //         blogs: blogs,
+    //         blogthemes: secondClasses
+    //     });
+    // },
+    'GET /blog/:id': async (ctx, next) => {   //f
         var blogid = parseInt(ctx.params.id);
+        if(isNaN(blogid)){
+            ctx.response.redirect('/404');
+            return;
+        }
         var blog = blogid && await Blog.findBlogById(blogid);
-        var firstClass = blog.first_class==0?true:false;
-        blog = blog && onesqlDataToblogData(blog);
-        console.log('[GET /blog/:id] '+ JSON.stringify(blog));    
-        ctx.render('blog.html', {
-            title: blog.title+' | 个人博客',
-            blog: blog,
-            study: firstClass,
-            fun: !firstClass
-        });
+        if(JSON.stringify(blog)=='null'){
+            ctx.response.redirect('/404');
+            return;
+        }else{
+            var firstClass = blog.first_class==0?true:false;
+            console.log('[GET /blog/:id] '+ JSON.stringify(blog));
+            var tags = [];
+            var theme =  await Blogtheme.findBlogById(blog.second_class);
+            if(theme.content)tags.push(theme.content);
+            if(blog.add_Class)tags.push(blog.add_Class); 
+            blog = blog && onesqlDataToblogData(blog);
+            blog.tags = tags;
+            console.log('[GET /blog/:id] '+ JSON.stringify(blog));    
+            ctx.render('blog.html', {
+                title: blog.title+' | 个人博客',
+                blog: blog,
+                study: firstClass,
+                fun: !firstClass
+            });
+        }    
     },
     'GET /api/blog/themes': async (ctx, next) => {  //f
         var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
@@ -136,7 +228,7 @@ module.exports = {
         }
     },
 
-    'GET /blog/blog_edit/:id': async (ctx, next) => {  //f
+    'GET /blog/blog_edit/:id': async (ctx, next) => {  //fiiiii
         if(ctx.state.user&&ctx.state.user.admin){
             var blogData = {title:null, content:null, addClass:null,firstClass:null,secondClass:null,publish:null};
             var blogid = parseInt(ctx.params.id);
@@ -163,13 +255,20 @@ module.exports = {
             });
         }
     },
-    'GET /api/blog/blogs_count': async (ctx, next) => {
-        var blogsCount = await Blog.countAllBlog();
-        ctx.rest({blogsCount: blogsCount});
-    },
-    'POST /api/blog/blogs_count': async (ctx, next) => {
-        var first_class = parseInt(ctx.request.body.firstClass);
-        var blogsCount = await Blog.countAllBlog({first_class:first_class});
+    'POST /api/blog/blogs_count': async (ctx, next) => {   //f
+        //ctx.request.body : {firstClass:int, currentTheme:string, blogthemeId:int}
+        console.log('BLOGS_COUNT: '+JSON.stringify(ctx.request.body));
+        var firstClassParse = paramsIntCheck(ctx.request.body.firstClass, ctx, false);
+        var blogthemeIdParse = paramsIntCheck(ctx.request.body.blogthemeId, ctx, false);
+        var blogTheme = ctx.request.body.currentTheme;
+        var blogsCount = 0;
+        if(firstClassParse.result){
+            blogsCount = await Blog.countAllBlog({first_class:firstClassParse.num});
+        }else{
+            if(blogthemeIdParse.result)blogsCount = await Blog.countAllBlog({second_class:blogthemeIdParse.num});
+            else blogsCount = await Blog.countSearchBlog(blogTheme);
+        }
+        console.log('[POST /api/blog/blogs_count] '+blogTheme+ 'COUNT: '+blogsCount);
         ctx.rest({blogsCount: blogsCount});
     },
     'POST /api/blog/page/:currentPage': async (ctx, next) => {
@@ -247,13 +346,5 @@ module.exports = {
             
             ctx.rest({blogs: blogs});
         //}
-    },
-    'GET /blog/search': async (ctx, next) => {
-        console.log('***********************');
-        console.log(ctx.querystring);
-        console.log('***********************');
-        ctx.render('register.html', {
-            title: ctx.querystring+' | 个人博客',
-        });
     },
 };
