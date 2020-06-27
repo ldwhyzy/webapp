@@ -1,45 +1,68 @@
 const WebSocket = require('ws')
-
-function parseUser(token){
-    var user = {};
-    if(typeof token!=="string")return user;
-    var arr = decodeURIComponent(token).split(";").reduce(function(acc, cur){
-        let a = cur.split("=");
-        acc[a[0]]=a[1];
-        return acc;
-    }, {});
-    if(arr['aid']==='test33'){
-        user.id = arr['id'];
-        user.name = arr['name'];
-    }
-    console.log(JSON.stringify(arr));
-    return user;
-}
+const jwt = require('jsonwebtoken');
+const secret = require('./config').TOKEN_SECRET;
+const Message = require('./models/Message');
 
 var messageIndex = 0;
 var usersocketmap = {};
+
+function parseUser(token){
+    var user = {};
+    if(!token||typeof token!=="string")return user;
+    // var arr = decodeURIComponent(token).split(";").reduce(function(acc, cur){
+    //     let a = cur.split("=");
+    //     acc[a[0]]=a[1];
+    //     return acc;
+    // }, {});
+    // if(arr['aid']==='test33'){
+    //     user.id = arr['id'];
+    //     user.name = arr['name'];
+    // }
+    try{
+        var decodeToken = jwt.verify(decodeURIComponent(token), secret);
+        user = {id: decodeToken.id, name: decodeToken.name};
+    }catch(err){
+        console.log('[parseUser] jwt decode error!');
+    }
+    console.log(JSON.stringify(decodeToken));
+    if(user)user.icon = 'yuri_PR.png';
+    return user;
+}
+
+function chatArrayCheck(wss){
+    if(wss.chatArray.length>=200){
+        //chat save database;
+        let result = await Message.createMessages(wss.chatArray.slice(0, 100));
+        if(result.success)wss.chatArray.splice(0, 100);
+    }
+}
 
 function createMessage(type, user, sendto, data) {
     messageIndex ++;
     return JSON.stringify({
         id: messageIndex,
         type: type,
-        user: user,
+        userid: user,
         sendto: sendto,
-        data: data
+        data: data,
+        sendtime: Date.now()
     });
 }
 
 function onConnect() {
     let user = this.user;
-    let msg = createMessage('join', user, null, `${user.name} joined.`);
-    this.wss.broadcast(msg);
+    let msg = createMessage('mainMessage', user.id, null, this.wss.chatArray);
+    this.send(msg);
+    msg = createMessage('join', user.id, null, `${user.name} joined.`);
+    //this.wss.broadcast(msg);
+    //this.wss.chatArray.push(msg);
     // build user list:
     //wss.clients is Set type, map caller should be Array.
-    let users = Array.from(this.wss.clients).map(function(client){
-        return client.user;
-    });
-    this.send(createMessage('list', user, null, users));
+    // let users = Array.from(this.wss.clients).map(function(client){
+    //     return client.user;
+    // });
+    // this.send(createMessage('list', user, null, users));
+    this.wss.broadcast(createMessage('list', user.id, null, this.wss.userList));
 }
 
 function onMessage(message) {
@@ -52,11 +75,11 @@ function onMessage(message) {
             let sendto = recievews&&recievews.user;
             if(message.type==="publicchat"){
                 console.log("[SSS]public chat");
-                let msg = createMessage('publicchat', this.user, sendto, message.data);
+                let msg = createMessage('publicchat', this.user.id, sendto&&sendto.id, message.data);
                 this.wss.broadcast(msg);
             }else if(message.type==="privatechat"){
                 console.log("[SSS]private chat");
-                let msg = createMessage('privatechat', this.user, sendto, message.data);
+                let msg = createMessage('privatechat', this.user.id, sendto&&sendto.id, message.data);
                 //this.wss.broadcast(msg);
                 if(recievews &&recievews.readyState === WebSocket.OPEN)
                 recievews.send(msg);
@@ -70,7 +93,7 @@ function onMessage(message) {
 
 function onClose() {
     let user = this.user;
-    let msg = createMessage('left', user, null, `${user.name} is left.`);
+    let msg = createMessage('left', user.id, null, `${user.name} is left.`);
     this.wss.broadcast(msg);
     console.log(`[WebSocket] ${user.name} is left.`);
 }
@@ -82,6 +105,15 @@ function onError(err){
 function createWebSocketServer(server=null){
     if(server)var wss = new WebSocket.Server({server});
     else var wss = new WebSocket.Server({port:3001});
+    wss.userList = {};
+    wss.chatArray = [];
+
+    let intervalObj = setInterval(() => {
+        chatArrayCheck(wss);
+    }, 1000*60*5);
+    wss.intervalObj = intervalObj;
+    //clearInterval(wss.intervalObj); //when close socket server, do this too.
+
     wss.broadcast = function broadcast(data) {  //wss.clients is a set of websocket!!! 
         wss.clients.forEach(function each(client) {
             if(client.readyState === WebSocket.OPEN)
@@ -134,7 +166,12 @@ function createWebSocketServer(server=null){
         if(!user.id){
           ws.close(4001, 'Invalid user');
           return;
-        }     
+        }
+        if(Object.keys(wss.userList).length>50){
+            ws.close(5002, 'overabundance user');
+            return;
+        }
+        wss.userList[user.id] = user;     
         ws.on('message', onMessage);
         ws.on('close', onClose);
         ws.on('error', onError);
@@ -146,8 +183,9 @@ function createWebSocketServer(server=null){
     });
     
     console.log('[SERVER] ON WORK');
-    //return wss;    
+    return wss;    
 }
+
 
 //createWebSocketServer();
 module.exports = createWebSocketServer;

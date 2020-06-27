@@ -7,6 +7,10 @@ var Message = db.defineModel('messages', {
     // to: db.STRING(50),
     content: db.STRING(200),
     message_type: db.STRING(50),
+    send_time:{
+        type: Sequelize.BIGINT,
+        allowNull: false
+    }
 });
 
 Message.belongsTo(User, {as:'from_user', foreignKey:'from'});
@@ -31,6 +35,17 @@ Message.createMessage = async function(message){
 //     if(message)result = await message.update(values);
 //     return result;
 // };
+Message.createMessages = async function(messages){
+    let messagesData = messages;   //check in reserve
+    let result = {success:false, messagesArr:null};
+    try{ 
+        let  messagesArr = await this.bulkCreate(messagesData);
+        result = {success:true, messagesArr: messagesArr};  
+    }catch(err){
+        console.log('Messages create error.');
+    }                            
+    return result;
+};
 
 Message.deleteMessage = async function(id){
     let message = await this.findByPk(id);

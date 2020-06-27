@@ -1,6 +1,6 @@
 //'use strict';
 const http = require('http');
-;const Koa = require('koa');
+const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 
 const controller = require('./controller');
@@ -63,8 +63,19 @@ app.on('error', err=>{
 });
 
 
-var server = http.createServer(app.callback());
-createWebSocketServer(server);
+const server = http.createServer(app.callback());
+const wss = createWebSocketServer(server);
+
+// server.on('upgrade', function(req, socket, head){
+//     console.log(req.url);  
+//     console.log(Object.keys(head));
+//     wss.handleUpgrade(req, socket, head, function (ws) {
+//         wss.emit('connection', ws, req);
+//     });        
+// });
+
 server.listen(3000);
 
 console.log('app started at port 3000...');
+
+module.exports = wss;

@@ -19,6 +19,7 @@ module.exports = {
         var blogthemes = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});  
         ctx.render('blogs_page.html', {
             title: '未找到相关页面',
+            blogthemes: blogthemes
         });
     }
 };

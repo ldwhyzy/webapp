@@ -1,4 +1,7 @@
+const jwt = require('jsonwebtoken');
+const secret = require('../config').TOKEN_SECRET;
 const Comment = require('../model').Comment;
+const ctxurlparse = require('../utils/tools').ctxurlparse;
 
 function sqlDataToCommentData(sqlData){
     //comment like: 
@@ -64,11 +67,24 @@ module.exports = {
         var user = ctx.state.user;
         var token = null; 
         if(user){
-            let aid = 'test33';
-            token = `id=${user.id};name=${user.name};aid=${aid};expire=1`;
+            token = jwt.sign({id: user.id, name: user.name}, secret,{expiresIn: '12h'});
             console.log('ws token:'+token);
             token = encodeURIComponent(token);
         }
         ctx.rest({token:token});
+    },
+    'GET /thoughts/history': async (ctx, next) => {
+        var title = '讨论集';
+        var keywords = ctxurlparse(ctx.querystring);
+        var page = keywords.page||1;
+        ctx.response.redirect('/404');
+        // var blogs = await Blog.offsetFindBlog(BLOG_ROW, parseInt(page), {first_class:0});
+        // var secondClasses = await Blogtheme.offsetFindBlogtheme(20, 1, {theme_class: 1});
+        // ctx.render('blogs_page.html', {
+        //     study: true,
+        //     title: title+' | 个人博客',
+        //     blogs: [],
+        //     blogthemes: []
+        // });
     },
 };

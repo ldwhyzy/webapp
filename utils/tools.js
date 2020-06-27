@@ -21,6 +21,20 @@ function getIntervalTime(UTCtime){
     return publishTime;
 }
 
+function ctxurlparse(querystr){
+    //sample /blog/blogs/theme/4?keyword=人工智能
+    //var keywordstr = urlstr.split('?')[1];
+    var keywordarr = decodeURIComponent(querystr).split('&');
+    var keyword = {};
+    for(var i=0;i<keywordarr.length;i++){
+        var str = keywordarr[i].split('=');
+        //keyword[str[0]] = decodeURIComponent(str[1]);
+        keyword[str[0]] = str[1];
+    }
+    return keyword;
+}
+
 module.exports = {
     getIntervalTime: getIntervalTime,
+    ctxurlparse: ctxurlparse
   };

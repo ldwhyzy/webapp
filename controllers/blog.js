@@ -2,6 +2,7 @@ const Blog = require('../models/Blog');
 const Blogtheme = require('../models/Blogtheme');
 const ADMIN_CODE = require('../config').ADMIN_CODE;
 const BLOG_ROW = require('../config').BLOG_ROW;
+const ctxurlparse = require('../utils/tools').ctxurlparse;
 
 const xhrAuthenticateCheck = require('../cookieset').xhrAuthenticateCheck;
 
@@ -63,19 +64,6 @@ function clientBlogDataCheck(blog, user){
     blogData.secondClass = parseInt(blog.secondClass);
     blogData.publish = blog.publish=='public'?0:1;
     return blogData;
-}
-
-function ctxurlparse(querystr){
-    //sample /blog/blogs/theme/4?keyword=人工智能
-    //var keywordstr = urlstr.split('?')[1];
-    var keywordarr = decodeURIComponent(querystr).split('&');
-    var keyword = {};
-    for(var i=0;i<keywordarr.length;i++){
-        var str = keywordarr[i].split('=');
-        //keyword[str[0]] = decodeURIComponent(str[1]);
-        keyword[str[0]] = str[1];
-    }
-    return keyword;
 }
 
 function paramsIntCheck(para, ctx, redirect=true){
