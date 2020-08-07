@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/User');
 module.exports = {
     'GET /user/profile': async (ctx, next) => {
@@ -14,10 +16,11 @@ module.exports = {
         if(userid){
             var user = ctx.state.user;
             var result = {
+                id: user.id,
                 name: user.name,
                 email: user.email,
                 admin: user.admin,
-                portrait: "/static/images/user_portrait/2.jpg",
+               //portrait: "2.jpg",
                 selfInfo: "这是个人简介，想做什么就去做吧。"
             }
             //console.log('/user/api/getuser: '+JSON.stringify(user));
@@ -25,11 +28,26 @@ module.exports = {
         }
     },
     "POST /api/user/info_save": async (ctx, next)=>{
-        name = ctx.request.body.name+"re";
-        email = ctx.request.body.email+"re";
-        portrait = ctx.request.body.portrait;
-        selfInfo = ctx.request.body.selfInfo+"re";
-        ctx.rest({name: name, email: email, portrait: portrait, selfInfo: selfInfo});
+        /*
+        ctx.request.body {name, email, selfInfo}
+        ctx.request.files {pic}
+        */ 
+        if(!ctx.state.user)return;
+        var pic = ctx.request.files.pic;  //koa-body解析formdata,默认把文件放到os.tmpdir()(\Users\username\AppData\Local\Temp\)
+        var updateInfo = ctx.request.body;
+        if(updateInfo){
+            var result = await User.updateUser(ctx.state.user.id, updateInfo);
+        }
+        if(pic){
+            const reader = fs.createReadStream(pic.path);//manual delete temp upload file needed?!
+            let filePath = path.join(__dirname, '../static/images/user_portrait/', `${ctx.state.user.id}`+pic.name);
+            const writer = fs.createWriteStream(filePath);
+            reader.pipe(writer);
+            writer.on("finish", function(){
+                fs.unlink(pic.path);
+            });
+        }
+        ctx.rest({success:true,updated:result});      
     },
     'GET /user/message': async (ctx, next) => {
         var user = ctx.state.user
@@ -43,7 +61,7 @@ module.exports = {
     'GET /user/manage': async (ctx, next) => {
         var user = ctx.state.user
         if(user&&user.admin){
-             var userInfo = {}//用户信息汇总，包括USER表，comment表，blog表信息 
+             var userInfo = {}//
              ctx.render("manage.html", {userInfo: userInfo, __admin__:user.admin>5});
         }else{
             ctx.response.redirect('/');

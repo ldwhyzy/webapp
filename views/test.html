@@ -56,10 +56,42 @@
                                         <span class="caret"></span>
                                     </button>
     </div>
-     
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="/static/editormd/css/editormd.min.css" />
+    <div class="col-md-9 col-md-offset-1" style="border:solid;height:600px;margin-bottom: 50px;padding:5px;">
+        <!-- <div id="markdown-test">
+
+        </div> -->
+        <div id="markdown-editor">
+            <textarea id="content" name="content" class="form-control" rows="14"></textarea>
+        </div>
+        <button class="btn btn-default" id="md-btn">展示Markdown内容</button>
+    </div>
+
+  
+    <script src="/static/editormd/editormd.min.js"></script>
     <script>
     $(function (){
-        $("[data-toggle='popover']").popover();
+        // $("[data-toggle='popover']").popover();
+        // document.getElementById('markdown-test').innerHTML =
+        // marked('# Marked in the browser\n\nRendered by **marked**.');
+
+        var editor = editormd("markdown-editor", {
+             width: "100%",
+             height: "100%",
+            //emoji: true,   
+            // markdown: "xxxx",     // dynamic set Markdown text
+            path : "/static/editormd/lib/"  // Autoload modules mode, codemirror, marked... dependents libs path
+        });
+        console.log(editor);
+        $('#md-btn').on('click', function mdisplay(){
+            console.log($('#content').val());
+            $.post('/api/test/md', {data:$('#content').val()}, function(data){
+                console.log('[back]', data);
+            });
+        });
+        
     });
     </script>
     </div>

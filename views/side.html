@@ -60,9 +60,11 @@
                 if(path.search("profile")>0){
                     firstLink = $(".info-list-item>a:first");
                 }else if(path.search("manage")>0){
-                    firstLink = $(".info-list-item>a:last");
+                    firstLink = $(".info-list-item>a:eq(2)");
                 }else if(path.search("message")>0){
                     firstLink = $(".info-list-item>a:eq(1)");
+                }else if(path.search("chatroom")>0){
+                    firstLink = $(".info-list-item>a:last");
                 }
 
                 firstLink.css({backgroundColor: "#08c", color: "#f8f8f8"});
@@ -80,7 +82,6 @@
                         $(this).parent().siblings().children().css({backgroundColor: "#f8f8f8", color: "#08c"});
                         return;
                     }
-
                     $(this).parent().siblings().children().each(
                         function(){
                             if($(this).hasClass("my-clicked"))return;
@@ -129,6 +130,7 @@
                             <li class="info-list-item"><a href="/user/message">站内消息</a></li>
                             {% if __admin__ %}
                             <li class="info-list-item"><a href="/user/manage" class="manage">管理博客</a></li>
+                            <li class="info-list-item"><a href="/user/chatroom">管理聊天室</a></li>
                             {% endif %}
                         </ul>
                     </div>

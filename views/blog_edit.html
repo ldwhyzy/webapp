@@ -16,14 +16,17 @@
 	    -->
         <link rel="stylesheet" href="/static/css/bootstrap.min.css"> 
         <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="/static/editormd/css/editormd.min.css" />
 	    <link rel="stylesheet" href="/static/css/webapp.css">
 		<script src="/static/js/jquery.min.js"></script>
 	    <script src="/static/js/bootstrap.min.js"></script>
         <script src="/static/js/vue.js"></script>
 	    <script src="/static/js/holder.min.js"></script>
         <script src="/static/js/jq-paginator.js"></script>
+        <script src="/static/editormd/editormd.min.js"></script>
         <script type="text/javascript" src="/static/js/sha1.min.js"></script>
         <script type="text/javascript" src="/static/js/ldzy-util.js"></script>
+
         <style type="text/css">
             body{background: #efefef /*url(/static/img/backgroud.gif)*/}
             label{/*font-family:"Times New Roman", Times, serif;*/
@@ -45,6 +48,9 @@
             .col-md-3{height:600px;}
             #blog-theme-area{margin-top:10px;}
             .blog-theme button{margin:3px;}
+            /* #markdown-editor{} */
+            .markdown-div{height:800px;}
+            .border-none{border: none;}
         </style>
         <script type="text/javascript">
             function getBlogContent(){
@@ -57,13 +63,13 @@
                 var secondClass = $("#second-class option:selected").val();
                 var addedTag = $("#add-tag").val();
                 var publish = $("input:radio[name='publishOptions']:checked").val();
-                //  alert("title: "+title+"\n"+
-                //        "content: "+content+"\n"+
-                //        "firstClass: "+ firstClass+"\n"+
-                //        "secondClass: "+secondClass+"\n"+
-                //        "addedClass: "+addedClass+"\n"+
-                //        "publish: "+publish
-                //  );
+                 alert("title: "+title+"\n"+
+                       "content: "+content+"\n"+
+                       "firstClass: "+ firstClass+"\n"+
+                       "secondClass: "+secondClass+"\n"+
+                       "addedClass: "+addedClass+"\n"+
+                       "publish: "+publish
+                 );
                 return {blogid:blogid, title:title, content:content, firstClass:firstClass, 
                         secondClass:secondClass, addedTag:addedTag, publish:publish,};
             }
@@ -72,6 +78,7 @@
                 // $("#second-class").change(function(){
                 //     alert($("#second-class option:selected").val());
                 // });
+                var blogTemp = getBlogContent();
                 var sideusername = sessionStorage.getItem("username");
                 if(sideusername){
                     $("#welcom-hi").text(decodeURIComponent(sideusername));
@@ -79,6 +86,7 @@
                 $(".blog-publish").click(function(event){
                     $(event.target).addClass("disabled");
                     let blogData = getBlogContent();
+                    blogTemp = blogData;
                     $.post('/api/blog/manage', {blogData:blogData, manage:3}, function(data, status){
                         if(status=='success')$(event.target).removeClass("disabled");
                     });
@@ -87,25 +95,42 @@
                 $(".blog-tempsave").click(function(event){
                     $(event.target).addClass("disabled");
                     let blogData = getBlogContent();
+                    blogTemp = blogData;
                     $.post('/api/blog/manage', {blogData:blogData, manage: 1}, function(data, status){
                         if(status=='success')$(event.target).removeClass("disabled");
                     });
                 });
 
-                $(".blog-modal").click(function(event){
-                    $(event.target).addClass("disabled");
-                    var id = location.pathname;
-                    var blogData = getBlogContent();
+                // $(".blog-modal").click(function(event){
+                //     $(event.target).addClass("disabled");
+                //     var id = location.pathname;
+                //     var blogData = getBlogContent();
 
-                    $.post('/api/blog/blog_tempsave', blogData, function(data, status){
-                        if(status=='success')$(event.target).removeClass("disabled");
-                    });
+                //     $.post('/api/blog/blog_tempsave', blogData, function(data, status){
+                //         if(status=='success')$(event.target).removeClass("disabled");
+                //     });
+                // });
+
+                // $(".blog-cancel").click(function(event){
+                //     var blogData = getBlogContent();
+                //     window.close();
+                // });
+                $(".btn-cancel").click(function(event){
+                    // var blogData = getBlogContent();
+                    window.close();
                 });
 
                 $(".blog-cancel").click(function(event){
-                    var blogData = getBlogContent();
-                    window.close();
+                    var blogTemp1 = getBlogContent();
+                    if(JSON.stringify(blogTemp)==JSON.stringify(blogTemp1)){
+                        event.stopPropagation();
+                        window.close();
+                    }
                 });
+
+                // $("#confirm-Modal").on("show.bs.modal", function(e){
+                //     if()
+                // });
 
                 $(".btn-blog-theme").click(function(event){
                     var themeid = $(event.target).attr("data-id");
@@ -157,9 +182,12 @@
                                     <label for="blog_title">博客标题</label>
                                     <input type="text" class="form-control" id="blog-title" placeholder="标题" value="{{ __blogData__.title }}">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group markdown-div">
                                     <label for="blog_content">博客内容</label>
-                                    <textarea class="form-control" id="blog-content" rows="30" placeholder="不吐不快" style="white-space: pre-wrap">{{ __blogData__.content }}</textarea>
+                                    <!-- <textarea class="form-control" id="blog-content" rows="30" placeholder="不吐不快" style="white-space: pre-wrap">{{ __blogData__.content }}</textarea> -->
+                                    <div id="markdown-editor">
+                                        <textarea id="blog-content" name="content" class="form-control" rows="30" placeholder="不吐不快">{{ __blogData__.content }}</textarea>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="add-tag">添加分类标签</label>        
@@ -203,33 +231,24 @@
                             <div class="fuction-button-line">
                                 <button type="button" class="btn btn-default button-spacing blog-publish">发布博客</button>
                                 <button type="button" class="btn btn-default button-spacing blog-tempsave">保存草稿</button>
-                                <button type="button" class="btn btn-default button-spacing blog-modal" data-toggle="modal" data-target="#myModal">预览</button>
-                                <button type="button" class="btn btn-default button-spacing blog-cancel">取消</button>
+                                <!-- <button type="button" class="btn btn-default button-spacing blog-modal" data-toggle="modal" data-target="#myModal">预览</button> -->
+                                <button type="button" class="btn btn-default button-spacing blog-cancel" data-toggle="modal" data-target="#confirm-Modal">取消</button>
                             </div>
-                            <!-- Modal -->
-                            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                                <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal fade" id="confirm-Modal" tabindex="-1" role="dialog" aria-labelledby="confirm-ModalLabel">
+                                <div class="modal-dialog modal-sm" role="document">
                                     <div class="modal-content">
-                                        <div class="modal-header">
+                                        <div class="modal-header border-none">
                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                            <h4 class="modal-title" id="myModalLabel">博客预览</h4>
+                                            <p class="modal-title text-danger" id="confirm-ModalLabel"><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;警告</p>
                                         </div>
                                         <div class="modal-body">
-                                            <h3 class="page-header" id="preview-header">博客标题</h3>
-                                            <div>
-                                                <P id="preview-mainbody">
-                                                        嗨～各位八月初好呀，八月也开始热了，我整个人都熟了，北极也好像开始融化了，那么全球温室效应该怎么办……也跟我没多大关系。
-                        
-                                                        扯远了，本篇为八月最新，内容还是略微不错的
-                                                        
-                                                        兄妹
+                                                <P class="text-success" id="preview-mainbody">
+                                                    修改的内容未保存，直接退出会丢失!
                                                 </P>
-                                                <span class="glyphicon glyphicon-tag"></span><span id="preview-tag"></span>
-                                            </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary" data-dismiss="modal">确认</button>
-                                        <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                                        <div class="modal-footer border-none">
+                                            <button type="button" class="btn btn-danger btn-cancel">退出</button>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +258,7 @@
                     <div class="col-md-3 col-md-offset-1 main-right">
                         <div id="blog-theme-area">
                             <div class="blog-themes">
-                                <h4>标签</h4>
+                                <h4>标签</h4>                                                                                                                                
                                 <div class="blog-theme">
                                     <!-- {% for option in __secondClass__ %}
                                     <button type="button" class="btn btn-primary btn-blog-theme" data-id="{{option.id}}">{{option.str}}</button>
@@ -272,6 +291,16 @@
         </div>
     </body>
     <script>
+    var editor = editormd("markdown-editor", {
+        width: "100%",
+        height: "97%",
+        //emoji: true,   
+        placeholder: "不吐不快",
+        watch: false, //perview
+        fontSize: "14px",
+        path : "/static/editormd/lib/",  // Autoload modules mode, codemirror, marked... dependents libs path
+        htmlDecode: true
+    });    
     var eventBus = new Vue();
 
     var blogThemeOptions = new Vue({

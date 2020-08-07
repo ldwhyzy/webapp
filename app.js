@@ -1,13 +1,14 @@
 //'use strict';
 const http = require('http');
 const Koa = require('koa');
-const bodyParser = require('koa-bodyparser');
-
+// const bodyParser = require('koa-bodyparser'); //解析formdata数据无力
+const koaBody = require('koa-body');  
 const controller = require('./controller');
 const templating = require('./templating');
 const restPre = require('./rest');
 const cookieSet = require('./cookieset');
 const createWebSocketServer = require('./websocket');
+const websocketOn = require('./config').WEBSOCKET_ON;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -47,8 +48,9 @@ app.use(async (ctx, next) => {  //404
     }
 });
 
-
-app.use(bodyParser());  //解析POST数据，可在ctx.request.body获取
+//解析POST数据，可在ctx.request.body获取
+//app.use(bodyParser());  
+app.use(koaBody({ multipart: true, formidable:{maxFileSize: 2*1024*1024} }));
 
 app.use(cookieSet.cookieCheck());  //检查是否有cookie
 
@@ -64,7 +66,12 @@ app.on('error', err=>{
 
 
 const server = http.createServer(app.callback());
-const wss = createWebSocketServer(server);
+app.context.httpServer = server;
+if(websocketOn){
+    const wss = createWebSocketServer(server);
+    app.context.wss = wss;
+}
+
 
 // server.on('upgrade', function(req, socket, head){
 //     console.log(req.url);  
@@ -77,5 +84,3 @@ const wss = createWebSocketServer(server);
 server.listen(3000);
 
 console.log('app started at port 3000...');
-
-module.exports = wss;

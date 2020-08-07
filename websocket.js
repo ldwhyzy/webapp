@@ -29,11 +29,13 @@ function parseUser(token){
     return user;
 }
 
-function chatArrayCheck(wss){
-    if(wss.chatArray.length>=200){
+async function chatArrayCheck(storeAll=false){
+    if(!storeAll&&this.chatArray.length>=200){
         //chat save database;
-        let result = await Message.createMessages(wss.chatArray.slice(0, 100));
-        if(result.success)wss.chatArray.splice(0, 100);
+        let result = await Message.createMessages(this.chatArray.slice(0, 100));
+        if(result.success)this.chatArray.splice(0, 100);
+    }else if(storeAll){
+        let result = await Message.createMessages(this.chatArray);
     }
 }
 
@@ -107,9 +109,10 @@ function createWebSocketServer(server=null){
     else var wss = new WebSocket.Server({port:3001});
     wss.userList = {};
     wss.chatArray = [];
+    wss.chatroomTheme = '自由发挥的主题会';
 
-    let intervalObj = setInterval(() => {
-        chatArrayCheck(wss);
+    let intervalObj = setInterval(async () => {
+        await chatArrayCheck.call(wss);
     }, 1000*60*5);
     wss.intervalObj = intervalObj;
     //clearInterval(wss.intervalObj); //when close socket server, do this too.
@@ -119,7 +122,21 @@ function createWebSocketServer(server=null){
             if(client.readyState === WebSocket.OPEN)
                 client.send(data);
         });
-    };    
+    };
+    wss.closeServer = async function (){
+        clearInterval(this.intervalObj); 
+        await chatArrayCheck.call(this, true); 
+        //this.close(1000, 'administrator close the server');
+        this.close();
+    }
+    
+    wss.getServerStatus = function(){
+        return {onLineNum: this.clients.size, theme: this.chatroomTheme};
+    }
+
+    wss.setChatroomTheme = function(theme){
+        if(theme)this.chatroomTheme = theme;
+    }
 
     // JSON.safeStringify = (obj, indent = 2) => {  //
     //     let cache = [];

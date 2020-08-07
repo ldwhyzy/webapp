@@ -1,3 +1,4 @@
+const marked = require('marked');
 const Blog = require('../models/Blog');
 const Blogtheme = require('../models/Blogtheme');
 const ADMIN_CODE = require('../config').ADMIN_CODE;
@@ -36,7 +37,7 @@ function onesqlDataToblogData(sqlData, simple=true){
     blogData = {
         id: sqlData.id,
         title: sqlData.title, 
-        content: sqlData.content, 
+        content: marked(sqlData.content), 
         created_at: new Date(sqlData.updatedAt).toLocaleString('chinese',{hour12:false}),
         //tag: tag,
         // status: sqlData.publish,
@@ -189,7 +190,7 @@ module.exports = {
             if(blog.add_Class)tags.push(blog.add_Class); 
             blog = blog && onesqlDataToblogData(blog);
             blog.tags = tags;
-            console.log('[GET /blog/:id] '+ JSON.stringify(blog));    
+            // console.log('[GET /blog/:id] '+ JSON.stringify(blog));    
             ctx.render('blog.html', {
                 title: blog.title+' | 个人博客',
                 blog: blog,
@@ -259,30 +260,23 @@ module.exports = {
         console.log('[POST /api/blog/blogs_count] '+blogTheme+ 'COUNT: '+blogsCount);
         ctx.rest({blogsCount: blogsCount});
     },
-    'POST /api/blog/page/:currentPage': async (ctx, next) => {
+    'POST /api/blog/blogs': async (ctx, next) => {
             //var currentPage = parseInt(ctx.params.currentPage);
-            var offset = ctx.request.body.offsetData;
+            var requestBody = ctx.request.body;
+            var simple = true;
+            var offset = requestBody.offsetData;
             offset = {blogRow:parseInt(offset.blogRow), currentPage:parseInt(offset.currentPage)};
-            var firstClass = parseInt(ctx.request.body.firstClass);
-            var options = firstClass&&{first_class:firstClass}||null;
+            if(requestBody.hasOwnProperty('firstClass')){
+                var firstClass = parseInt(requestBody.firstClass);
+            }
+            if(requestBody.hasOwnProperty('simple')&&!requestBody.simple){
+                simple = false;
+            }
+            var options = requestBody.options;
             var blogs = null;
             var sqlData = await Blog.offsetFindBlog(offset.blogRow, offset.currentPage, options);
-            if(sqlData)blogs = sqlDataToblogData(sqlData, false);
+            if(sqlData)blogs = sqlDataToblogData(sqlData, simple);
             ctx.rest({blogs: blogs});
-    },
-    'POST /api/blog/blogs-page-get': async (ctx, next) => {
-        //if(ctx.state.user&&ctx.state.user.admin){
-            var options = ctx.request.body;
-            var blogs = null;
-            var sqlData = await Blog.offsetFindBlog(parseInt(options.blogRow), parseInt(options.currentPage));
-            if(sqlData)blogs = sqlDataToblogData(sqlData);
-            // blogs = [{id:1, title:'第一篇技术博客', created_at:200001,status:'发布'},
-            //          {id:3, title:'第二篇技术博客', created_at:200002,status:'草稿'},
-            //          {id:4, title:'二次元研究', created_at:200003,status:'隐藏'},
-            //          {id:5, title:'第四篇技术博客', created_at:200009,status:'发布'},];
-            
-            ctx.rest({blogs: blogs});
-        //}
     },
     'POST /api/blog/manage': async (ctx, next) => {   //f
         var result = null;

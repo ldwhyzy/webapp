@@ -55,11 +55,15 @@ User.userExist = async function(userFind){
     }    
 };
 
-User.updateUser = async function(id, options){
+User.updateUser = async function(id, values, admin=0){
     try{
+        if(admin<5){
+            delete values.passwd;
+        }
         let t = await db.transaction();
         let user = await this.findByPk(id, {transaction: t});
-        if(user)var effect = await user.update(options, {transaction: t});
+        if(user)var effect = await user.update(values, {transaction: t});
+        //var effect = await this.update(values, {transaction: t});
         await t.commit();
         return {effect: effect, result:true};
     }catch(err){

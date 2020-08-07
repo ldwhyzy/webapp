@@ -23,7 +23,7 @@ function blogedit(event){
             var editWindow = window.open(`/blog/blog_edit/${blogData.blogid}`);
         }else{
             $.post('/api/blog/manage', {blogData:blogData, manage:manage}, function(data, status){
-            alert(JSON.stringify(data));
+            //alert(JSON.stringify(data));
             window.location.reload();
             });
         }
@@ -40,42 +40,14 @@ $(function(){
             blogs:null,//study篇从后台获取
         },
         created:function(){
+            var _that = this; 
             let offsetData = {blogRow:10, currentPage:1};
-            $.post(`/api/blog/page/{postData.currentPage}`, {offsetData:offsetData, firstClass:0}, function(data, status){   
-                        if(data.blogs)blogsVM.blogs = data.blogs;
+            $.post('/api/blog/blogs', {offsetData:offsetData}, function(data, status){   
+                        if(data.blogs)_that.blogs = data.blogs;
                     }); 
            //this.blogs = this.test;
         }
     });
-
-//     $(".blog-edit").click(function(event){
-//     var id = $(event.target).attr("data-id");
-//     //editWindow = window.open(`/blog/blog_edit/${id}`);
-//     // $.post('/blog/blog_edit', {id:id}, function(data, status){
-//     //     var editWindow = window.open(`/blog/blog_edit/${id}`);
-//     //     editWindow.document.write(data);
-//     // });
-//     $.post('/blog/api/blog_id_check', {id:id}, function(data, status){
-//         var editWindow = window.open(`/blog/blog_edit/${data.id}`);
-//         //editWindow.document.write(data);
-//     });
-// });
-
-// $(".blog-delete").click(function(event){
-//     var blogid = $(event.target).attr("data-id");
-//     $.post('/blog/api/manage', {blogData:{blogid:blogid}, manage:"delete"}, function(data, status){
-//         alert(data);
-//         windown.location.reload();
-//     });
-// });
-
-// $(".blog-hide").click(function(event){
-//     var id = $(event.target).attr("data-id");
-//     $.post('/blog/api/manage', {blogData:{blogid:blogid}, manage:"hide"}, function(data, status){
-//         alert(data);
-//         windown.location.reload();
-//     });
-// });
 
     var totalPages = 0,
         currentPageFlag = 1;
@@ -98,7 +70,7 @@ $(function(){
                // $('.text-test').html('当前第' + num + '页');
                var postData = {blogRow:blogRow, currentPage:num};
                if(type=="change"){
-                    $.post('/api/blog/blogs-page-get', postData, function(data, status){   
+                    $.post('/api/blog/blogs', postData, function(data, status){   
                         //this.currentPage = num;
                         blogsVM.blogs = data.blogs;
                         
@@ -114,9 +86,9 @@ $(function(){
 
 {% block content %}
 {% raw %}<!-- 避免VUE与后端模板jinja2的冲突-->
-    <div class="col-md-7 right-panel">  
+<div class="col-md-7 right-panel">  
    <h4 class="page-header">发布文章</h4>
-   <button class="btn btn-default blog-edit" data-id=0 data-manage=9 onclick="blogedit(event)">新建文章</button>
+   <button class="btn btn-default blog-edit" data-id=0 data-manage=9 onclick="blogedit(event)">新建文章</button>  
    <h4 class="page-header">管理已发布文章</h4>
    <table class="table" id="blogs" v-cloak>
         <tr>

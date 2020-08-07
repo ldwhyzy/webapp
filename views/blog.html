@@ -175,7 +175,7 @@ $(function(){
             <article>
             <h3 class="page-header">{{blog.title}}</h3>
             <p>发表于{{blog.created_at}}</p>
-            <p>{{blog.content}}</p>
+            <div>{{blog.content|safe}}</div>
             <p class="tag-line"><span class="glyphicon glyphicon-tag"></span>
                 {% for tag in blog.tags %}
                 <span class="blog-tag">{{ tag }}</span>

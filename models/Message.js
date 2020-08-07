@@ -8,7 +8,7 @@ var Message = db.defineModel('messages', {
     content: db.STRING(200),
     message_type: db.STRING(50),
     send_time:{
-        type: Sequelize.BIGINT,
+        type: db.BIGINT,
         allowNull: false
     }
 });
