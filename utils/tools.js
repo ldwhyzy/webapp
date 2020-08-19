@@ -1,11 +1,19 @@
-function getIntervalTime(UTCtime){
+const marked = require('marked');
+
+function markdownToHTML(str){
+    return marked(str);
+}
+
+function getPublishTime(UTCtime, digital=false){
     try{
         UTCtime = parseInt(UTCtime);
-        if(Number.isNaN(UTCtime))return;
+        if(Number.isNaN(UTCtime))return '未知时空';
     }catch(e){
-        return;
+        return '未知时空';
     };
-
+    if(digital){
+        return new Date(UTCtime).toLocaleString('chinese',{hour12:false});
+    }
     var currentTime = new Date();
     var published = currentTime.getTime() - UTCtime;
     var publishTime = '';
@@ -17,7 +25,6 @@ function getIntervalTime(UTCtime){
         var date = new Date(UTCtime);
         publishTime = date.getFullYear()+'年'+(date.getMonth()+1)+'月'+date.getDate()+'日';
     }
-
     return publishTime;
 }
 
@@ -35,6 +42,7 @@ function ctxurlparse(querystr){
 }
 
 module.exports = {
-    getIntervalTime: getIntervalTime,
-    ctxurlparse: ctxurlparse
+    getPublishTime,
+    ctxurlparse,
+    markdownToHTML
   };

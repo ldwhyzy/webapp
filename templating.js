@@ -1,14 +1,7 @@
 const nunjucks = require('nunjucks');
-const getIntervalTime = require('./utils/tools').getIntervalTime;
+const {getPublishTime, markdownToHTML} = require('./utils/tools');
 
-function getPublishTime(UTCtime){
-    var intervalTime = getIntervalTime(UTCtime);
-    if(!intervalTime)return '未知时空';
-    else return intervalTime;
-}
-
-filters = {getPublishTime:getPublishTime, };
-
+filters = {getPublishTime, markdownToHTML};
 
 function createEnv(path, opts){
     var 

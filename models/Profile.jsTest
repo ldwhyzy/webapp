@@ -7,8 +7,13 @@ var Profile = db.defineModel('profiles', {
         type: db.STRING(200),
         allowNull: true
     },
-    last_login: {
-        type: Sequelize.BIGINT,//毫秒数
+    login_time: {
+        type: db.STRING(50),//三次记录以\n分割的毫秒数
         allowNull: false
-    }
+    },
+    login_ip: {
+        type: db.STRING(50),//三次记录以\n分割的毫秒数
+        allowNull: false
+    },
+
 });

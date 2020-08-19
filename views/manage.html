@@ -12,6 +12,11 @@
     .center-class{text-align:center;}
 </style>
 <script type="text/javascript">
+// const {getPublishTime} = require();
+// const {getPublishTime} = rquire(['tools'], function(tools){
+//     return tools.getPublishTime;
+// });
+const getIntervalTime = ldzyUtil.getIntervalTime;
 function blogedit(event){
         var blogid = $(event.target).attr("data-id");
         if(!blogid){
@@ -30,6 +35,7 @@ function blogedit(event){
 }        
 
 $(function(){
+    Vue.filter('getPublishTime', getIntervalTime);
     var blogsVM = new Vue({
         el: "#blogs",
         data: {
@@ -44,6 +50,7 @@ $(function(){
             let offsetData = {blogRow:10, currentPage:1};
             $.post('/api/blog/blogs', {offsetData:offsetData}, function(data, status){   
                         if(data.blogs)_that.blogs = data.blogs;
+                        console.log(data.blogs);
                     }); 
            //this.blogs = this.test;
         }
@@ -111,7 +118,7 @@ $(function(){
                 <span>{{blog.title}}</span>
             </td>
             <td>
-                <span>{{blog.created_at}}</span>
+                <span>{{blog.createdAt|getPublishTime(true)}}</span>
             </td>
             <td>
                 <span>{{blog.status}}</span>

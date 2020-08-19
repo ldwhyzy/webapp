@@ -86,8 +86,8 @@ $(function(){
         {% for blog in blogs %}
             <article>
                 <h4 class="page-header"><a href="/blog/{{blog.id }}">{{ blog.title }}</a></h4> 
-                <p class="text-muted public-time" data-publish="{{ blog.updatedAt }}">发表于{{ blog.updatedAt | getPublishTime }}</p>
-                <p>{{ blog.content|truncate(200, false, ' ...') }}</p>
+                <p class="text-muted public-time" data-publish="{{ blog.createdAt }}">发表于{{ blog.createdAt | getPublishTime }}</p>
+                <p>{{ blog.content|markdownToHTML|striptags|truncate(150, false, ' ...')}}</p>
                 <p><a href="/blog/{{ blog.id }}">阅读全文</a></p>
                 <hr>
             </article>

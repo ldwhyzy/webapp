@@ -1,20 +1,25 @@
 const db = require('../db');
 const User = require('./User');
+const MessageTheme = require('./MessageTheme');
 const Op = db.Op; 
 
 var Message = db.defineModel('messages', {
     // from: db.STRING(50),
     // to: db.STRING(50),
+    // message_theme: {              //1 用户空间消息，2 聊天室主题
+    //     type: db.INTEGER,
+    //     allowNull: false
+    // }, 
     content: db.STRING(200),
-    message_type: db.STRING(50),
-    send_time:{
-        type: db.BIGINT,
-        allowNull: false
+    message_type: {
+        type: db.STRING(50),  //聊天室消息类型
+        allowNull: true
     }
 });
 
 Message.belongsTo(User, {as:'from_user', foreignKey:'from'});
 Message.belongsTo(User, {as:'to_user', foreignKey:'to'});
+Message.belongsTo(MessageTheme, {targetKey:'theme_class', foreignKey:'message_theme'});
 
 Message.createMessage = async function(message){
     let messageData = {};
@@ -58,7 +63,7 @@ Message.findMessageById = function(id){
 Message.countAllMessage = function(options={}){
     return this.count({col:"id", where:options});
 };
-Message.FindMessage = function(options={}){
+Message.findMessage = function(options={}){
     return this.findOne({where: options,  include:[{model: User, as:'from_user', attributes: ['id', 'name']},
                                                    {model: User, as:'to_user', attributes: ['id', 'name']}], raw: true});
 };
