@@ -14,6 +14,10 @@ var Message = db.defineModel('messages', {
     message_type: {
         type: db.STRING(50),  //聊天室消息类型
         allowNull: true
+    },
+    send_time: {
+        type: db.INTEGER,  //聊天室消息发送时间
+        allowNull: true
     }
 });
 

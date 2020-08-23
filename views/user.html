@@ -18,26 +18,12 @@ label{/*font-family:"Times New Roman", Times, serif;*/
 </style>
 <script type="text/javascript">
  $(function(){
-    //const imgFile = document.querySelector("#img-file")
-    // imgFile.addEventListener("change", function(){
-    //     var file = this.files[0];
-    //     var reader = new FileReader();
-    //     reader.readAsDataURL(file);
-    //     reader.onload = function(e) {
-    //                     // 图片base64化
-    //                     var newUrl = this.result;
-    //                     document.querySelector("#user-portrait").src = newUrl;
-    //                     //preview.style.backgroundImage = 'url(' + newUrl + ')';
-    //                 };
-    // });
     const user = {
         name:"user1", 
         email:"example@personal.com",
         portrait:"",
         selfInfo: "无知亦无畏"
     };
-    //var userinfoTemp = JSON.parse(JSON.stringify(user));
-    //console.log(JSON.stringify(userinfoTemp));
 
     const vm = new Vue({
         el: "#user-info",
@@ -133,13 +119,6 @@ label{/*font-family:"Times New Roman", Times, serif;*/
                     <label for="img-file" class="btn btn-primary pic-upload">上传图片<input type="file" id="img-file" ref="pic" @change="uploadPic"></label>
                     <span class="help-block">图片150px*150px，不大于2M</span>
                 </dd>
-                <!-- <template v-if="portrait">
-                    <dd><img v-bind:src="portrait" id="user-portrait" class="img-circle img-portrait"></dd>         
-                </template>
-                <template v-else>
-                    <dd><img src="/static/images/user_portrait/yuri_PR.png" id="user-portrait" width="150px"></dd> 
-                </template>
-                <dd>预览</dd> -->
                 <dd>
                     <div style="display:inline-block">
                         <img class="img-circle img-portrait" :src="'/static/images/user_portrait/'+user.id" onerror="this.src='/static/images/user_portrait/yuri_PR.png'">

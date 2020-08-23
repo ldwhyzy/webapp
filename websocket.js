@@ -29,33 +29,48 @@ function parseUser(token){
     return user;
 }
 
-async function chatArrayCheck(storeAll=false){
-    if(!storeAll&&this.chatArray.length>=200){
-        //chat save database;
-        let result = await Message.createMessages(this.chatArray.slice(0, 100));
-        if(result.success)this.chatArray.splice(0, 100);
-    }else if(storeAll){
-        let result = await Message.createMessages(this.chatArray);
-    }
-}
-
-function createMessage(type, user, sendto, data) {
+function createMessage(type, userid, sendto, data) {
     messageIndex ++;
     return JSON.stringify({
         id: messageIndex,
         type: type,
-        userid: user,
+        userid: userid,
         sendto: sendto,
         data: data,
         sendtime: Date.now()
     });
 }
 
+function messageToSql(messages){
+    let messagesData = [];
+    for(var i=0;i<messages.length;i++){
+        messagesData[i].message_theme = 2;
+        messagesData[i].message_type = messages[i].type;
+        messagesData[i].content = messages[i].data;
+        messagesData[i].from = messages[i].userid;
+        messagesData[i].to = messages[i].sendto;
+        messagesData[i].send_time = messages[i].sendtime;
+    }
+    return messagesData;
+}
+
+async function chatArrayCheck(storeAll=false){
+    if(!storeAll&&this.chatArray.length>=200){
+        //chat save database;
+        let result = await Message.createMessages(messageToSql(this.chatArray.slice(0, 100)));
+        if(result.success)this.chatArray.splice(0, 100);
+    }else if(storeAll){
+        let result = await Message.createMessages(this.chatArray);
+    }
+}
+
 function onConnect() {
     let user = this.user;
-    let msg = createMessage('mainMessage', user.id, null, this.wss.chatArray);
+    let firstMessage = this.wss.chatArray.filter(function(message){return message.type=="publicchat"});
+    let msg = createMessage('mainMessage', user.id, null, firstMessage);
     this.send(msg);
     msg = createMessage('join', user.id, null, `${user.name} joined.`);
+    this.wss.chatArray.push(msg);
     //this.wss.broadcast(msg);
     //this.wss.chatArray.push(msg);
     // build user list:
@@ -76,19 +91,20 @@ function onMessage(message) {
             let recievews = message.sendto&&usersocketmap[message.sendto];
             let sendto = recievews&&recievews.user;
             if(message.type==="publicchat"){
-                console.log("[SSS]public chat");
-                let msg = createMessage('publicchat', this.user.id, sendto&&sendto.id, message.data);
+                //console.log("[SSS]public chat");
+                var msg = createMessage('publicchat', this.user.id, sendto&&sendto.id, message.data);
                 this.wss.broadcast(msg);
             }else if(message.type==="privatechat"){
-                console.log("[SSS]private chat");
-                let msg = createMessage('privatechat', this.user.id, sendto&&sendto.id, message.data);
-                //this.wss.broadcast(msg);
+                //console.log("[SSS]private chat");
+                var msg = createMessage('privatechat', this.user.id, sendto&&sendto.id, message.data);
                 if(recievews &&recievews.readyState === WebSocket.OPEN)
                 recievews.send(msg);
                 if(user.id!==sendto.id)this.send(msg);
             }
         }catch(e){
            console.log(`[WebSocket] message from ${user.name} error found `, e);
+        }finally{
+            this.wss.chatArray.push(msg);//保存前端发过来的聊天信息
         }    
     }
 }
@@ -116,7 +132,6 @@ function createWebSocketServer(server=null){
     }, 1000*60*5);
     wss.intervalObj = intervalObj;
     //clearInterval(wss.intervalObj); //when close socket server, do this too.
-
     wss.broadcast = function broadcast(data) {  //wss.clients is a set of websocket!!! 
         wss.clients.forEach(function each(client) {
             if(client.readyState === WebSocket.OPEN)

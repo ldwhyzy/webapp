@@ -1,7 +1,6 @@
 #ingnore
 node_modules
 static
-config.js
 *.zip
 debug
 *.sql

@@ -108,7 +108,7 @@ $(function(){
             return;
         }else{
             var messageData = {from:user.userid, to:location.pathname.split('/').pop(), message:message};
-            $.post('/api/user/privatemassage', messageData, function(data){
+            $.post('/api/message/createMessage', messageData, function(data){
                 if(data.success)$("#message-info").val('');
             });
         }
@@ -119,10 +119,6 @@ $(function(){
 {% endblock %}
 {% block contentmain %}
     <div class="col-md-2 col-md-offset-1 content-main" style="margin-right:5px;">
-        <!-- <ul class="info-list">
-            <li class="info-list-item"><a class="active" href="#user-info">个人信息</a></li>
-            <li class="info-list-item"><a href="#message">发送消息</a></li>
-        </ul> -->
         <ul class="nav nav-stacked info-list" id="space-ul">
             <li class="info-list-item"><a href="#user-info" data-toggle="tab">个人信息</a></li>
             <li class="info-list-item"><a href="#message" data-toggle="tab">发送消息</a></li>
@@ -142,11 +138,7 @@ $(function(){
             </dl>
             <dl class="dl-horizontal">
                 <dt>头像图片</dt>
-                {% if userdata.portrait %}
-                <dd><img src="{{userdata.portrait}}" id="user-portrait" width="150px"></dd>
-                {% else %}
-                <dd><img src="/static/images/yuri_re.png" id="user-portrait" width="150px"></dd>
-                {% endif %}
+                <dd><img src="/static/images/user_portrait/{{userdata.id}}" id="user-portrait" width="150px" onerror="this.src='/static/images/user_portrait/yuri_PR.png'"></dd>
             </dl>
             <dl class="dl-horizontal">
                 <dt>简述</dt>

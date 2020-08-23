@@ -299,7 +299,7 @@ $(function(){
                             <div style="margin-bottom:10px;" v-for="msg in messages">
                                 <div v-if="msg.type === 'join' || msg.type === 'left'">
                                     <div class="media-left">
-                                        <img class="media-object" style="width:15px; height:15px;" v-bind:src="'/static/images/user_portrait/'+users[msg.userid].icon">
+                                        <img class="media-object" style="width:15px; height:15px;" v-bind:src="'/static/images/user_portrait/'+users[msg.userid]" onerror="this.src='/static/images/user_portrait/yuri_PR.png'">
                                     </div>
                                     <div class="media-body">
                                         <h4 class="media-heading" style="color:chartreuse" v-text="'[系统消息] '+msg.data"></h4>
@@ -308,7 +308,7 @@ $(function(){
                                 <div v-if="msg.type === 'publicchat'||msg.type === 'privatechat'">
                                     <div class="media">
                                         <div class="media-left">
-                                            <img class="media-object" style="width:30px; height:30px;" v-bind:src="'/static/images/user_portrait/'+users[msg.userid].icon">
+                                            <img class="media-object" style="width:30px; height:30px;" v-bind:src="'/static/images/user_portrait/'+users[msg.userid]" onerror="this.src='/static/images/user_portrait/yuri_PR.png'">
                                         </div>
                                         <div class="media-body">
                                             <!-- <h4 class="media-heading msl-username" v-bind:data-id="msg.user.id" v-text="msg.user.name"></h4> -->

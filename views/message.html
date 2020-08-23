@@ -21,27 +21,26 @@ label{/*font-family:"Times New Roman", Times, serif;*/
 //var t = null;
  $(function(){
     var offsetData = {messageRow:5, currentPage:1};
-
-    const messages = [
-                        {
-                            id: 1,
-                            from: {id:1, name:'gogogo', portrait:'/static/images/user_portrait/2.jpg'},
-                            content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
-                                如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
-                            createdAt:ldzyUtil.getIntervalTime('1578836400802'),
-                            showReplyDom: false,
-                            replyMessageContent:''
-                        },
-                        {
-                            id:2,
-                            from: {id:2, name:'gogagjaoogogo', portrait:'/static/images/user_portrait/2.jpg'},
-                            content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
-                                如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
-                            createdAt:ldzyUtil.getIntervalTime('1578836400802'),
-                            showReplyDom: false,
-                            replyMessageContent:''
-                        },
-    ];
+    // const messages = [
+    //                     {
+    //                         id: 1,
+    //                         from: {id:1, name:'gogogo'},
+    //                         content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
+    //                             如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
+    //                         createdAt:ldzyUtil.getIntervalTime('1578836400802'),
+    //                         showReplyDom: false,
+    //                         replyMessageContent:''
+    //                     },
+    //                     {
+    //                         id:2,
+    //                         from: {id:2, name:'gogagjaoogogo'},
+    //                         content:'请注意，函数体内部的语句在执行时，一旦执行到return时，函数就执行完毕，并将结果返回。因此，函数内部通过条件判断和循环可以实现非常复杂的逻辑。\
+    //                             如果没有return语句，函数执行完毕后也会返回结果，只是结果为undefined。',
+    //                         createdAt:ldzyUtil.getIntervalTime('1578836400802'),
+    //                         showReplyDom: false,
+    //                         replyMessageContent:''
+    //                     },
+    // ];
 
     const vm = new Vue({
         el: "#message-info",
@@ -49,10 +48,11 @@ label{/*font-family:"Times New Roman", Times, serif;*/
             messages:[],
         },
         mounted: function(){
-            $.get("/api/space/message/", {rowCount:5, currentPage:1}, function(data){
-                if(data)vm.messages = data;
+            const _that = this;
+            $.post("/api/space/message/", {rowCount:5, currentPage:1}, function(data){
+                console.log(data);
+                if(data)_that.messages = data;
             });
-            // this.messages = messages; 
         },
         methods:{
             deleteMessage: function(message){
@@ -114,13 +114,13 @@ label{/*font-family:"Times New Roman", Times, serif;*/
     <div class="col-md-7 right-panel">  
         <div class="message-data-panel" id="message-info" v-cloak>
             <h3 class="page-header">站内消息</h3>
-            <div v-for="(message, index) in messages" :key="message.id"> 
+            <div v-for="(message, index) in messages" :key="message.id">
                 <div class="media">
                     <div class="media-left">
-                        <img class="media-object" style="width:30px; height:30px;" v-bind:src="message.from.portrait">
+                        <img class="media-object" style="width:30px; height:30px;" v-bind:src="'/static/images/user_portrait/'+message.from.id" onerror="this.src='/static/images/user_portrait/yuri_PR.png'">
                     </div>
                     <div class="media-body">
-                        <h4 class="media-heading"><a v-bind:data-id="message.from.id" v-text="message.from.name" href="'/user/space/'+message.from.id"></a></h4>
+                        <h4 class="media-heading"><a v-bind:data-id="message.from.id" v-text="message.from.name" :href="'/user/space/'+message.from.id"></a></h4>
                         <p v-text="message.content"></p>
                         <p>
                         <span class="grey-color" v-text="message.createdAt"></span>
