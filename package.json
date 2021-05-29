@@ -31,7 +31,7 @@
         "mz": "^2.4.0",
         "nunjucks": "^3.2.1",
         "sequelize": "^4.44.4",
-        "ws": "^7.3.1"
+        "ws": "^7.4.6"
     },
     "optionalDependencies": {
         "utf-8-validate": "^5.0.2"
